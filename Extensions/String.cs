@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace MeloongCore {
-    public static class Extensions {
-
-        #region String
+namespace MeloongCore.Extensions {
+    public static class StringExtensions {
 
         /// <summary>
         /// 高速的 StartsWith。
@@ -28,7 +26,7 @@ namespace MeloongCore {
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ContainsIgnoreCase(this string value, string subString) {
-            return value.IndexOf(subString,StringComparison.OrdinalIgnoreCase) >= 0;
+            return value.IndexOf(subString, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>
@@ -60,8 +58,6 @@ namespace MeloongCore {
         public static int LastIndexOfF(this string value, string subString, int startIndex, bool ignoreCase = false) {
             return value.LastIndexOf(subString, startIndex, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
-
-        #endregion
 
     }
 }

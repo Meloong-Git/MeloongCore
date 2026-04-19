@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using MeloongCore.Extensions;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
