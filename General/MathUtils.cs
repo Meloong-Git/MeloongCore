@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace MeloongCore {
     public static class MathUtils {
@@ -21,48 +22,53 @@ namespace MeloongCore {
             bool isNegative = input.StartsWithF("-");
             if (isNegative) input = input.TrimStart('-');
             // 转换为十进制
-            long realNum = 0; long scale = 1;
-            foreach (var digit in input.Reverse().Select(l => digits.IndexOf(l))) {
-                realNum += digit * scale;
-                scale *= fromRadix;
+            BigInteger realNum = 0;
+            foreach (char c in input) {
+                int digit = digits.IndexOf(c);
+                if (digit == -1 || digit >= fromRadix) throw new ArgumentException($"Character '{c}' in input '{input}' is not a valid digit for radix {fromRadix}.");
+                realNum = realNum * fromRadix + digit;
             }
-            return RadixConvert(realNum * (isNegative ? -1 : 0), toRadix);
+            return RadixConvert(realNum * (isNegative ? -1 : 1), toRadix);
         }
         /// <summary>
         /// 转换为 2 到 86 进制的字符串。
         /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
         /// </summary>
         public static string RadixConvert(this long input, int toRadix) {
-            const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/+=!?@#$%^&*()[]{}<>;:',";
-            if (toRadix < 2 || toRadix > digits.Length) throw new ArgumentOutOfRangeException(nameof(toRadix), $"{nameof(toRadix)} must be between 2 and 86.");
-            // 零与负数的预处理
-            if (input == 0) return "0";
-            bool isNegative = input < 0;
-            if (isNegative) input = -input;
-            // 转换为指定进制
-            var results = new List<char>();
-            while (input > 0) {
-                int newNum = (int) (input % toRadix);
-                input = (input - newNum) / toRadix;
-                results.Add(digits[newNum]);
-            }
-            // 负数的结束处理与返回
-            if (isNegative) results.Add('-');
-            return new string(results.ToArray().Reverse().ToArray());
+            return RadixConvert((BigInteger) input, toRadix);
         }
         /// <summary>
         /// 转换为 2 到 86 进制的字符串。
         /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
         /// </summary>
         public static string RadixConvert(this int input, int toRadix) {
-            return RadixConvert((long) input, toRadix);
+            return RadixConvert((BigInteger) input, toRadix);
         }
         /// <summary>
         /// 转换为 2 到 86 进制的字符串。
         /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
         /// </summary>
         public static string RadixConvert(this byte input, int toRadix) {
-            return RadixConvert((long) input, toRadix);
+            return RadixConvert((BigInteger) input, toRadix);
+        }
+        private static string RadixConvert(this BigInteger input, int toRadix) {
+            const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/+=!?@#$%^&*()[]{}<>;:',";
+            if (toRadix < 2 || toRadix > digits.Length) throw new ArgumentOutOfRangeException(nameof(toRadix), $"{nameof(toRadix)} must be between 2 and 86.");
+            // 零与负数的预处理
+            if (input == 0) return "0";
+            bool isNegative = input < 0;
+            // 转换为指定进制
+            var results = new List<char>();
+            BigInteger remaining = BigInteger.Abs(input);
+            BigInteger bigRadix = toRadix;
+            while (remaining > 0) {
+                remaining = BigInteger.DivRem(remaining, bigRadix, out BigInteger remainder);
+                results.Add(digits[(int) remainder]);
+            }
+            // 负数的结束处理与返回
+            if (isNegative) results.Add('-');
+            results.Reverse();
+            return new string(results.ToArray());
         }
 
         #endregion
