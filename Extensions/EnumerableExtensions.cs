@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace MeloongCore.Extensions {
     public static class EnumerableExtensions {
 
-        #region 去重
+        #region Distinct
 
         /// <summary>
         /// 通过比较器进行去重。
@@ -28,7 +30,7 @@ namespace MeloongCore.Extensions {
 
         #endregion
 
-        #region 取最大、最小值
+        #region MinBy / MaxBy
 
         /// <summary>
         /// 选择所有最大值对应的对象。
@@ -118,6 +120,42 @@ namespace MeloongCore.Extensions {
                 }
                 return minItem;
             }
+        }
+
+        #endregion
+
+        #region Join
+
+        /// <summary>
+        /// 用指定的分割符将集合连接为字符串。
+        /// </summary>
+        public static string Join(this IEnumerable list, char split) {
+            StringBuilder builder = new StringBuilder();
+            bool isFirst = true;
+            foreach (var element in list) {
+                if (isFirst)
+                    isFirst = false;
+                else
+                    builder.Append(split);
+                if (element != null) builder.Append(element.ToString());
+            }
+            return builder.ToString();
+        }
+        /// <summary>
+        /// 用指定的分割符将集合连接为字符串。
+        /// </summary>
+        public static string Join(this IEnumerable list, string split) {
+            if (split.IsSingle()) return list.Join(split[0]);
+            StringBuilder builder = new StringBuilder();
+            bool isFirst = true;
+            foreach (var element in list) {
+                if (isFirst)
+                    isFirst = false;
+                else
+                    builder.Append(split);
+                if (element != null) builder.Append(element.ToString());
+            }
+            return builder.ToString();
         }
 
         #endregion
