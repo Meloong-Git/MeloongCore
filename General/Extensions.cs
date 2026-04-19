@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace PCLCS {
+namespace MeloongCore {
     public static class Extensions {
 
         #region String

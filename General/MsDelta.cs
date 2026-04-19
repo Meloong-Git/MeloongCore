@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace PCLCS {
+namespace MeloongCore {
 
     /// <summary>
     /// 使用 Windows MsDelta API 生成、应用增量补丁文件。

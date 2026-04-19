@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace PCLCS {
+namespace MeloongCore {
     public static class PathUtils {
 
         /// <summary>
