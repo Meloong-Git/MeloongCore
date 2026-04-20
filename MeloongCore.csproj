@@ -7,7 +7,7 @@
 	<OutDir>bin\</OutDir>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-	<Configurations>Debug;Release;Snapshot;SnapshotUpdate</Configurations>
+	<Configurations>Debug;Release;Snapshot</Configurations>
 	<Deterministic>true</Deterministic>
   </PropertyGroup>
 
@@ -16,11 +16,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" />
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SnapshotUpdate|AnyCPU'">
-    <DefineConstants>$(DefineConstants);SNAPSHOT;UPDATE</DefineConstants>
-    <Optimize>True</Optimize>
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Snapshot|AnyCPU'">
     <Optimize>True</Optimize>
