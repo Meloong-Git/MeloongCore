@@ -18,7 +18,7 @@ namespace MeloongCore {
         public static void Create(string oldFilePath, string newFilePath, string deltaFilePath) {
             if (!File.Exists(oldFilePath)) throw new FileNotFoundException($"旧文件不存在：{oldFilePath}", oldFilePath);
             if (!File.Exists(newFilePath)) throw new FileNotFoundException($"新文件不存在：{newFilePath}", newFilePath);
-            DirectoryUtils.Create(deltaFilePath);
+            DirectoryUtils.Create(deltaFilePath, isFilePath: true);
             // fileTypeSet：https://learn.microsoft.com/en-us/previous-versions/bb417345(v=msdn.10)?redirectedfrom=MSDN#file-type-sets (15L: DELTA_FILE_TYPE_SET_EXECUTABLES)
             // 131072L: IgnoreFileSizeLimit, 32u: Crc32
             if (!CreateDelta(15L, 131072L, 0L, 
@@ -34,7 +34,7 @@ namespace MeloongCore {
         public static void Apply(string oldFilePath, string deltaFilePath, string newFilePath) {
             if (!File.Exists(oldFilePath)) throw new FileNotFoundException($"旧文件不存在：{oldFilePath}", oldFilePath);
             if (!File.Exists(deltaFilePath)) throw new FileNotFoundException($"补丁文件不存在：{deltaFilePath}", deltaFilePath);
-            DirectoryUtils.Create(newFilePath);
+            DirectoryUtils.Create(newFilePath, isFilePath: true);
             // 1L: AllowLegacy
             if (!ApplyDelta(1L, PathUtils.Shorten(oldFilePath), PathUtils.Shorten(deltaFilePath), PathUtils.Shorten(newFilePath)))
                 throw new Win32Exception();
