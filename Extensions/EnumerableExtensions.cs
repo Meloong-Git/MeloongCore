@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace MeloongCore.Extensions;
+﻿namespace MeloongCore.Extensions;
 public static class EnumerableExtensions {
 
     #region Distinct
@@ -133,7 +127,7 @@ public static class EnumerableExtensions {
                 isFirst = false;
             else
                 builder.Append(split);
-            if (element != null) builder.Append(element.ToString());
+            if (element is not null) builder.Append(element.ToString());
         }
         return builder.ToString();
     }
@@ -149,7 +143,7 @@ public static class EnumerableExtensions {
                 isFirst = false;
             else
                 builder.Append(split);
-            if (element != null) builder.Append(element.ToString());
+            if (element is not null) builder.Append(element.ToString());
         }
         return builder.ToString();
     }
@@ -160,7 +154,7 @@ public static class EnumerableExtensions {
     /// 判断集合是否有且仅有一个元素。
     /// </summary>
     public static bool IsSingle<T>(this IEnumerable<T> source) {
-        if (source == null) return false;
+        if (source is null) return false;
         if (source is IList<T> list) return list.Count == 1;
         using var enumerator = source.GetEnumerator();
         if (!enumerator.MoveNext()) return false;

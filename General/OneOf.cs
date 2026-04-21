@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MeloongCore;
+﻿namespace MeloongCore;
 
 public readonly struct OneOf<T0, T1> {
     private readonly int _index;

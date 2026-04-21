@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
-
-namespace MeloongCore.Extensions;
+﻿namespace MeloongCore.Extensions;
 public static class StringExtensions {
 
     #region 区域性 / 大小写 简化
@@ -12,7 +8,7 @@ public static class StringExtensions {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool StartsWithF(this string value, string prefix, bool ignoreCase = false) {
-        if (value == null) return false;
+        if (value is null) return false;
         return value.StartsWith(prefix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
     /// <summary>
@@ -20,7 +16,7 @@ public static class StringExtensions {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EndsWithF(this string value, string suffix, bool ignoreCase = false) {
-        if (value == null) return false;
+        if (value is null) return false;
         return value.EndsWith(suffix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
 
@@ -85,7 +81,7 @@ public static class StringExtensions {
         if (splitStr.IsSingle())
             return fullStr.Split(splitStr[0]);
         else
-            return fullStr.Split(new[] {splitStr}, StringSplitOptions.None);
+            return fullStr.Split([splitStr], StringSplitOptions.None);
     }
 
     /// <summary>

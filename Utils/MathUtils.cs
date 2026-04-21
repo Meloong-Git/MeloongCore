@@ -1,10 +1,6 @@
-﻿using MeloongCore.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-namespace MeloongCore;
+﻿using System.Numerics;
 
+namespace MeloongCore;
 public static class MathUtils {
 
     #region 进制转换
@@ -62,7 +58,7 @@ public static class MathUtils {
         // 负数的结束处理与返回
         if (isNegative) results.Add('-');
         results.Reverse();
-        return new string(results.ToArray());
+        return new([..results]);
     }
 
     #endregion

@@ -1,9 +1,4 @@
-﻿using MeloongCore.Extensions;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-namespace MeloongCore;
-
+﻿namespace MeloongCore;
 public static class PathUtils {
 
     /// <summary>

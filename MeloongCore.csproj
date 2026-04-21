@@ -1,25 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
-    <OutputType>Library</OutputType>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	<OutDir>bin\</OutDir>
-	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-	<Configurations>Debug;Release;Snapshot</Configurations>
-	<Deterministic>true</Deterministic>
-	<LangVersion>13.0</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net462</TargetFramework>
+		<OutputType>Library</OutputType>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<OutDir>bin\</OutDir>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<Configurations>Debug;Release;Snapshot</Configurations>
+		<Deterministic>true</Deterministic>
+		<LangVersion>13.0</LangVersion>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>$(DefineConstants);SNAPSHOT</DefineConstants>
-  </PropertyGroup>
+	<ItemGroup>
+		<Using Include="System" />
+		<Using Include="System.ComponentModel" />
+		<Using Include="System.Collections" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Text" />
+		<Using Include="System.IO" />
+		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Runtime.InteropServices" />
+		<Using Include="MeloongCore.Extensions" />
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" />
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DefineConstants>$(DefineConstants);SNAPSHOT</DefineConstants>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Snapshot|AnyCPU'">
-    <Optimize>True</Optimize>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" />
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Snapshot|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
 
 </Project>
