@@ -7,7 +7,7 @@ public static class StringExtensions {
     /// 高速的 StartsWith。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool StartsWithF(this string value, string prefix, bool ignoreCase = false) {
+    public static bool StartsWithF([AllowNull] this string value, string prefix, bool ignoreCase = false) {
         if (value is null) return false;
         return value.StartsWith(prefix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
@@ -15,7 +15,7 @@ public static class StringExtensions {
     /// 高速的 EndsWith。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EndsWithF(this string value, string suffix, bool ignoreCase = false) {
+    public static bool EndsWithF([AllowNull] this string value, string suffix, bool ignoreCase = false) {
         if (value is null) return false;
         return value.EndsWith(suffix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
@@ -88,8 +88,8 @@ public static class StringExtensions {
     /// 获取在子字符串第一次出现之前的部分，例如对 2024/11/08 拆切 / 会得到 2024。
     /// 如果未找到子字符串则不裁切。
     /// </summary>
-    public static string BeforeFirst(this string str, string text, bool ignoreCase = false) {
-        int pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+    public static string BeforeFirst(this string str, [AllowNull] string text, bool ignoreCase = false) {
+        int pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text!, ignoreCase);
         if (pos >= 0)
             return str.Substring(0, pos);
         else
@@ -99,8 +99,8 @@ public static class StringExtensions {
     /// 获取在子字符串最后一次出现之前的部分，例如对 2024/11/08 拆切 / 会得到 2024/11。
     /// 如果未找到子字符串则不裁切。
     /// </summary>
-    public static string BeforeLast(this string str, string text, bool ignoreCase = false) {
-        int pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+    public static string BeforeLast(this string str, [AllowNull] string text, bool ignoreCase = false) {
+        int pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text!, ignoreCase);
         if (pos >= 0)
             return str.Substring(0, pos);
         else
@@ -111,10 +111,10 @@ public static class StringExtensions {
     /// 获取在子字符串第一次出现之后的部分，例如对 2024/11/08 拆切 / 会得到 11/08。
     /// 如果未找到子字符串则不裁切。
     /// </summary>
-    public static string AfterFirst(this string str, string text, bool ignoreCase = false) {
-        int pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+    public static string AfterFirst(this string str, [AllowNull] string text, bool ignoreCase = false) {
+        int pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text!, ignoreCase);
         if (pos >= 0)
-            return str.Substring(pos + text.Length);
+            return str.Substring(pos + text!.Length);
         else
             return str;
     }
@@ -122,10 +122,10 @@ public static class StringExtensions {
     /// 获取在子字符串最后一次出现之后的部分，例如对 2024/11/08 拆切 / 会得到 08。
     /// 如果未找到子字符串则不裁切。
     /// </summary>
-    public static string AfterLast(this string str, string text, bool ignoreCase = false) {
-        int pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+    public static string AfterLast(this string str, [AllowNull] string text, bool ignoreCase = false) {
+        int pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text!, ignoreCase);
         if (pos >= 0)
-            return str.Substring(pos + text.Length);
+            return str.Substring(pos + text!.Length);
         else
             return str;
     }

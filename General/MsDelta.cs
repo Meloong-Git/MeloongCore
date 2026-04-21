@@ -46,8 +46,8 @@ public static class MsDelta {
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CreateDelta(
         long fileTypeSet, long setFlags, long resetFlags,
-        string sourceName, string targetName, string sourceOptionsName,
-        string targetOptionsName, DeltaInput globalOptions,
+        string sourceName, string targetName, string? sourceOptionsName,
+        string? targetOptionsName, DeltaInput globalOptions,
         IntPtr targetFileTime, uint hashAlgId, string deltaName);
     [DllImport("msdelta.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

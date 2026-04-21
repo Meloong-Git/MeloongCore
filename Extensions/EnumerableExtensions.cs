@@ -79,9 +79,9 @@ public static class EnumerableExtensions {
 
     /// <summary>
     /// 选择最大值对应的对象。
-    /// 若没有元素则返回 Nothing。
+    /// 若没有元素则返回 null。
     /// </summary>
-    public static T MaxBy<T, C>(this IEnumerable<T> source, Func<T, C> selector) where C : IComparable<C> {
+    public static T? MaxBy<T, C>(this IEnumerable<T> source, Func<T, C> selector) where C : IComparable<C> {
         using var enumerator = source.GetEnumerator();
         if (!enumerator.MoveNext()) return default;
         T maxItem = enumerator.Current;
@@ -96,9 +96,9 @@ public static class EnumerableExtensions {
     }
     /// <summary>
     /// 选择最小值对应的对象。
-    /// 若没有元素则返回 Nothing。
+    /// 若没有元素则返回 null。
     /// </summary>
-    public static T MinBy<T, C>(this IEnumerable<T> List, Func<T, C> Selector) where C : IComparable<C> {
+    public static T? MinBy<T, C>(this IEnumerable<T> List, Func<T, C> Selector) where C : IComparable<C> {
         using var enumerator = List.GetEnumerator();
         if (!enumerator.MoveNext()) { return default; }
         T minItem = enumerator.Current;
@@ -152,8 +152,9 @@ public static class EnumerableExtensions {
 
     /// <summary>
     /// 判断集合是否有且仅有一个元素。
+    /// 在输入 null 时返回 false。
     /// </summary>
-    public static bool IsSingle<T>(this IEnumerable<T> source) {
+    public static bool IsSingle<T>([AllowNull] this IEnumerable<T> source) {
         if (source is null) return false;
         if (source is IList<T> list) return list.Count == 1;
         using var enumerator = source.GetEnumerator();
