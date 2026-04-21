@@ -29,6 +29,7 @@
 		<Using Include="System.Linq" />
 		<Using Include="System.Text" />
 		<Using Include="System.IO" />
+		<Using Include="System.Threading" />
 		<Using Include="System.Runtime.CompilerServices" />
 		<Using Include="System.Runtime.InteropServices" />
 		<Using Include="MeloongCore.Extensions" />
