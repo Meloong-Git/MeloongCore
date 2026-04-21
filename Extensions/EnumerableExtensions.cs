@@ -21,6 +21,13 @@ public static class EnumerableExtensions {
             if (seen.Add(selector(element))) yield return element;
         }
     }
+    /// <summary>
+    /// 按对象的指定值去重（PLINQ 并行版本）。
+    /// </summary>
+    public static ParallelQuery<T> DistinctBy<T, TKey>(this ParallelQuery<T> source, Func<T, TKey> selector) {
+        var seen = new ConcurrentDictionary<TKey, bool>();
+        return source.Where(element => seen.TryAdd(selector(element), true));
+    }
 
     #endregion
 
@@ -112,6 +119,95 @@ public static class EnumerableExtensions {
         return minItem;
     }
 
+    /// <summary>
+    /// 选择所有最大值对应的对象（PLINQ 并行版本）。
+    /// 若没有元素则返回空列表。
+    /// </summary>
+    public static List<T> MaxByAll<T, C>(this ParallelQuery<T> source, Func<T, C> selector) where C : IComparable<C> {
+        return source.Aggregate(
+            () => new List<T>(),
+            (localResult, item) => {
+                C itemValue = selector(item);
+                if (localResult.Count == 0) {
+                    localResult.Add(item);
+                } else {
+                    int cmp = itemValue.CompareTo(selector(localResult[0]));
+                    if (cmp > 0) {
+                        localResult.Clear();
+                        localResult.Add(item);
+                    } else if (cmp == 0) {
+                        localResult.Add(item);
+                    }
+                }
+                return localResult;
+            },
+            (result1, result2) => {
+                if (result1.Count == 0) return result2;
+                if (result2.Count == 0) return result1;
+                C value1 = selector(result1[0]);
+                C value2 = selector(result2[0]);
+                int cmp = value1.CompareTo(value2);
+                if (cmp > 0) return result1;
+                if (cmp < 0) return result2;
+                result1.AddRange(result2);
+                return result1;
+            },
+            result => result
+        );
+    }
+    /// <summary>
+    /// 选择所有最小值对应的对象（PLINQ 并行版本）。
+    /// 若没有元素则返回空列表。
+    /// </summary>
+    public static List<T> MinByAll<T, C>(this ParallelQuery<T> source, Func<T, C> selector) where C : IComparable<C> {
+        return source.Aggregate(
+            () => new List<T>(),
+            (localResult, item) => {
+                C itemValue = selector(item);
+                if (localResult.Count == 0) {
+                    localResult.Add(item);
+                } else {
+                    int cmp = itemValue.CompareTo(selector(localResult[0]));
+                    if (cmp < 0) {
+                        localResult.Clear();
+                        localResult.Add(item);
+                    } else if (cmp == 0) {
+                        localResult.Add(item);
+                    }
+                }
+                return localResult;
+            },
+            (result1, result2) => {
+                if (result1.Count == 0) return result2;
+                if (result2.Count == 0) return result1;
+                C value1 = selector(result1[0]);
+                C value2 = selector(result2[0]);
+                int cmp = value1.CompareTo(value2);
+                if (cmp < 0) return result1;
+                if (cmp > 0) return result2;
+                result1.AddRange(result2);
+                return result1;
+            },
+            result => result
+        );
+    }
+    /// <summary>
+    /// 选择最大值对应的对象（PLINQ 并行版本）。
+    /// 若没有元素则返回 null。
+    /// </summary>
+    public static T? MaxBy<T, C>(this ParallelQuery<T> source, Func<T, C> selector) where C : IComparable<C> {
+        var all = source.MaxByAll(selector);
+        return all.Count > 0 ? all[0] : default;
+    }
+    /// <summary>
+    /// 选择最小值对应的对象（PLINQ 并行版本）。
+    /// 若没有元素则返回 null。
+    /// </summary>
+    public static T? MinBy<T, C>(this ParallelQuery<T> source, Func<T, C> selector) where C : IComparable<C> {
+        var all = source.MinByAll(selector);
+        return all.Count > 0 ? all[0] : default;
+    }
+
     #endregion
 
     #region Join
@@ -168,6 +264,13 @@ public static class EnumerableExtensions {
     /// </summary>
     public static IEnumerable<T> ForAll<T>(this IEnumerable<T> source, Action<T> action) {
         foreach (T item in source) action(item);
+        return source;
+    }
+    /// <summary>
+    /// 对集合的每个元素并行执行指定操作（PLINQ 并行版本）。
+    /// </summary>
+    public static ParallelQuery<T> ForAll<T>(this ParallelQuery<T> source, Action<T> action) {
+        ParallelEnumerable.ForAll(source, action);
         return source;
     }
 
