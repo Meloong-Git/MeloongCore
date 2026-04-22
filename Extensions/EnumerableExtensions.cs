@@ -1,4 +1,6 @@
-﻿namespace MeloongCore.Extensions;
+﻿using System.Collections.Concurrent;
+
+namespace MeloongCore.Extensions;
 public static class EnumerableExtensions {
 
     #region Distinct
@@ -20,6 +22,13 @@ public static class EnumerableExtensions {
         foreach (var element in source) {
             if (seen.Add(selector(element))) yield return element;
         }
+    }
+    /// <summary>
+    /// 按对象的指定值去重。
+    /// </summary>
+    public static ParallelQuery<T> DistinctBy<T, TKey>(this ParallelQuery<T> source, Func<T, TKey> selector) {
+        var seen = new ConcurrentDictionary<TKey, bool>();
+        return source.Where(element => seen.TryAdd(selector(element), true));
     }
 
     #endregion
