@@ -176,7 +176,39 @@ public static class EnumerableExtensions {
         return result;
     }
 
+    /// <summary>
+    /// 尝试从字典中获取某项，如果该项不存在，则返回默认值。
+    /// </summary>
+    public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defaultValue = default!) =>
+        dict.TryGetValue(key, out var result) ? result : defaultValue;
+
+    /// <summary>
+    /// 将值添加到字典的对应项的列表中。
+    /// </summary>
+    public static void AddIntoValueCollection<TKey, TValue>(this IDictionary<TKey, List<TValue>> dict, TKey key, TValue value) {
+        if (dict.TryGetValue(key, out var collection)) {
+            collection.Add(value);
+        } else {
+            dict.Add(key, [value]);
+        }
+    }
+
     #endregion
+
+    /// <summary>
+    /// 将 <see cref="FlagsAttribute"/> 枚举值解包为它包含的单一 Flag 成员的集合。
+    /// 建议仅对没有极端值的正数枚举使用。
+    /// </summary>
+    /// <remarks>
+    /// 会跳过：0、非 2 的幂的值、不在枚举值中的数、组合值、对应同一个枚举项的多个别名。
+    /// </remarks>
+    public static IEnumerable<T> Flags<T>(this T value) where T : struct, Enum {
+        foreach (var element in Enum.GetValues(typeof(T)).Cast<T>().Distinct()) {
+            var number = Convert.ToInt64(element);
+            if (number == 0 || (number & (number - 1)) != 0) continue; // 跳过 0 和非 2 的幂的值
+            if (value.HasFlag(element)) yield return element;
+        }
+    }
 
     /// <summary>
     /// 判断集合是否有且仅有一个元素。
