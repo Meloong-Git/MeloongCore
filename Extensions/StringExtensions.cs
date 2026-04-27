@@ -168,7 +168,7 @@ public static class StringExtensions {
     /// 将字符串中的换行符统一替换为指定字符。
     /// 若指定了 <paramref name="mergeMultiple"/>，会将多次换行合并成一次换行。
     /// </summary>
-    public static string ReplaceLineEndings([DisallowNull] this string input, string newValue, bool mergeMultiple = false) =>
+    public static string ReplaceLineEndings(this string input, string newValue, bool mergeMultiple = false) =>
         Regex.Replace(input,
             mergeMultiple ? @"(?:\r\n|[\n\r\f\u0085\u2028\u2029])+" : @"\r\n|[\n\r\f\u0085\u2028\u2029]",
             newValue.Replace("$", "$$"), // 避免识别成捕获组
@@ -196,6 +196,6 @@ public static class StringExtensions {
     /// <summary>
     /// 该字符串中的字符是否均为 ASCII 字符。
     /// </summary>
-    public static bool IsAsciiOnly([DisallowNull] this string input) => input.All(c => c < 128);
+    public static bool IsAsciiOnly(this string input) => input.All(c => c < 128);
 
 }

@@ -17,7 +17,7 @@ public static class MsDelta {
         // fileTypeSet：https://learn.microsoft.com/en-us/previous-versions/bb417345(v=msdn.10)?redirectedfrom=MSDN#file-type-sets (15L: DELTA_FILE_TYPE_SET_EXECUTABLES)
         // 131072L: IgnoreFileSizeLimit, 32u: Crc32
         if (!CreateDelta(15L, 131072L, 0L, 
-            PathUtils.Shorten(oldFilePath), PathUtils.Shorten(newFilePath), null, null, new DeltaInput(), IntPtr.Zero, 32u, PathUtils.Shorten(deltaFilePath)))
+            FileUtils.ShortenPath(oldFilePath), FileUtils.ShortenPath(newFilePath), null, null, new DeltaInput(), IntPtr.Zero, 32u, FileUtils.ShortenPath(deltaFilePath)))
             throw new Win32Exception();
     }
 
@@ -31,7 +31,7 @@ public static class MsDelta {
         if (!File.Exists(deltaFilePath)) throw new FileNotFoundException($"补丁文件不存在：{deltaFilePath}", deltaFilePath);
         DirectoryUtils.Create(newFilePath, isFilePath: true);
         // 1L: AllowLegacy
-        if (!ApplyDelta(1L, PathUtils.Shorten(oldFilePath), PathUtils.Shorten(deltaFilePath), PathUtils.Shorten(newFilePath)))
+        if (!ApplyDelta(1L, FileUtils.ShortenPath(oldFilePath), FileUtils.ShortenPath(deltaFilePath), FileUtils.ShortenPath(newFilePath)))
             throw new Win32Exception();
     }
 
