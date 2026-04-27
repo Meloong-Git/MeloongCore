@@ -168,4 +168,17 @@ public static class StringExtensions {
     public static string ReplaceOnDemand(this string str, string oldValue, Func<string> newValue) =>
         str.Contains(oldValue) ? str.Replace(oldValue, newValue()) : str;
 
+    /// <summary>
+    /// 将字符串统一至某个长度，过短则用 Code 将其左侧填充，过长则截取靠左的指定长度。
+    /// </summary>
+    public static string EnsureLength(this string? str, char code, int length) {
+        if (str == null) str = "";
+        return str.Length > length ? str.Substring(0, length) : str.PadLeft(length, code);
+    }
+
+    /// <summary>
+    /// 该字符串中的字符是否均为 ASCII 字符。
+    /// </summary>
+    public static bool IsAsciiOnly([DisallowNull] this string input) => input.All(c => (int) c < 128);
+
 }
