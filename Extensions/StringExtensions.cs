@@ -9,7 +9,7 @@ public static class StringExtensions {
     /// 高速的 StartsWith。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool StartsWithF([AllowNull] this string value, string prefix, bool ignoreCase = false) {
+    public static bool StartsWithF(this string? value, string prefix, bool ignoreCase = false) {
         if (value is null) return false;
         return value.StartsWith(prefix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
@@ -17,7 +17,7 @@ public static class StringExtensions {
     /// 高速的 EndsWith。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool EndsWithF([AllowNull] this string value, string suffix, bool ignoreCase = false) {
+    public static bool EndsWithF(this string? value, string suffix, bool ignoreCase = false) {
         if (value is null) return false;
         return value.EndsWith(suffix, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
     }
@@ -155,13 +155,7 @@ public static class StringExtensions {
 
     #endregion
 
-    /// <summary>
-    /// 将第一个字符转换为大写，其余字符转换为小写。
-    /// </summary>
-    public static string Capitalize(this string word) {
-        if (string.IsNullOrEmpty(word)) return word;
-        return $"{word.Substring(0, 1).Upper()}{word.Substring(1).Lower()}";
-    }
+    #region 替换
 
     /// <summary>
     /// 替换字符串中的内容。
@@ -169,6 +163,26 @@ public static class StringExtensions {
     /// </summary>
     public static string ReplaceOnDemand(this string str, string oldValue, Func<string> newValue) =>
         str.Contains(oldValue) ? str.Replace(oldValue, newValue()) : str;
+
+    /// <summary>
+    /// 将字符串中的换行符统一替换为指定字符。
+    /// 若指定了 <paramref name="mergeMultiple"/>，会将多次换行合并成一次换行。
+    /// </summary>
+    public static string ReplaceLineEndings([DisallowNull] this string input, string newValue, bool mergeMultiple = false) =>
+        Regex.Replace(input,
+            mergeMultiple ? @"(?:\r\n|[\n\r\f\u0085\u2028\u2029])+" : @"\r\n|[\n\r\f\u0085\u2028\u2029]",
+            newValue.Replace("$", "$$"), // 避免识别成捕获组
+            RegexOptions.Compiled);
+
+    #endregion
+
+    /// <summary>
+    /// 将第一个字符转换为大写，其余字符转换为小写。
+    /// </summary>
+    public static string Capitalize(this string word) {
+        if (string.IsNullOrEmpty(word)) return word;
+        return $"{word.Substring(0, 1).Upper()}{word.Substring(1).Lower()}";
+    }
 
     /// <summary>
     /// 将字符串统一至某个长度。
@@ -183,15 +197,5 @@ public static class StringExtensions {
     /// 该字符串中的字符是否均为 ASCII 字符。
     /// </summary>
     public static bool IsAsciiOnly([DisallowNull] this string input) => input.All(c => c < 128);
-
-    /// <summary>
-    /// 将字符串中的换行符统一替换为指定字符。
-    /// 若指定了 <paramref name="mergeMultiple"/>，会将多次换行合并成一次换行。
-    /// </summary>
-    public static string ReplaceLineEndings([DisallowNull] this string input, string newValue, bool mergeMultiple = false) => 
-        Regex.Replace(input, 
-            mergeMultiple ? @"(?:\r\n|[\n\r\f\u0085\u2028\u2029])+" : @"\r\n|[\n\r\f\u0085\u2028\u2029]", 
-            newValue.Replace("$", "$$"), // 避免识别成捕获组
-            RegexOptions.Compiled);
 
 }

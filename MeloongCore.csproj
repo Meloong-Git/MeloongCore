@@ -23,6 +23,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Reference Include="PresentationFramework" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Using Include="System" />
 		<Using Include="System.ComponentModel" />
 		<Using Include="System.Collections" />

@@ -32,41 +32,49 @@ public static class EscapeUtils {
     /// <summary>
     /// 正则表达式转义。等同于 Regex.Escape。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? RegexEscape(string? value) => Regex.Escape(value);
 
     /// <summary>
     /// 正则表达式去转义。等同于 Regex.Unescape。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? RegexUnescape(string? value) => Regex.Unescape(value);
 
     /// <summary>
     /// URL 转义。等同于 Uri.EscapeDataString。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? UrlEscape(string? value) => Uri.EscapeDataString(value);
 
     /// <summary>
     /// URL 去转义。等同于 Uri.UnescapeDataString。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? UrlUnescape(string? value) => Uri.UnescapeDataString(value);
 
     /// <summary>
     /// 表单转义。等同于 WebUtility.UrlEncode。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? FormUrlEscape(string? value) => WebUtility.UrlEncode(value);
 
     /// <summary>
     /// 表单去转义。等同于 WebUtility.UrlDecode。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? FormUrlUnescape(string? value) => WebUtility.UrlDecode(value);
 
     /// <summary>
     /// HTML 转义。等同于 WebUtility.HtmlEncode。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? HtmlEscape(string? value) => WebUtility.HtmlEncode(value);
 
     /// <summary>
     /// HTML 去转义。等同于 WebUtility.HtmlDecode。
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? HtmlUnescape(string? value) => WebUtility.HtmlDecode(value);
 
 }
