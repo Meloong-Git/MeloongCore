@@ -8,9 +8,9 @@ public static class MathUtils {
     /// <summary>
     /// 将字符串作为数字，转换为指定进制的形式。
     /// 进制数需在 2 到 86 之间，且输入字符串中的每个字符都必须在该进制的字符集中。
-    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
+    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86。
     /// </summary>
-    public static string RadixConvert(this string input, int fromRadix, int toRadix) {
+    public static string ConvertRadix(this string input, int fromRadix, int toRadix) {
         const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/+=!?@#$%^&*()[]{}<>;:',";
         if (fromRadix < 2 || fromRadix > digits.Length) throw new ArgumentOutOfRangeException(nameof(fromRadix), $"{nameof(fromRadix)} must be between 2 and 86.");
         // 零与负数的预处理
@@ -24,24 +24,24 @@ public static class MathUtils {
             if (digit == -1 || digit >= fromRadix) throw new ArgumentException($"Character '{c}' in input '{input}' is not a valid digit for radix {fromRadix}.");
             realNum = realNum * fromRadix + digit;
         }
-        return RadixConvert(realNum * (isNegative ? -1 : 1), toRadix);
+        return ConvertRadix(realNum * (isNegative ? -1 : 1), toRadix);
     }
     /// <summary>
     /// 转换为 2 到 86 进制的字符串。
-    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
+    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86。
     /// </summary>
-    public static string RadixConvert(this long input, int toRadix) => RadixConvert((BigInteger) input, toRadix);
+    public static string ConvertRadix(this long input, int toRadix) => ConvertRadix((BigInteger) input, toRadix);
     /// <summary>
     /// 转换为 2 到 86 进制的字符串。
-    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
+    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86。
     /// </summary>
-    public static string RadixConvert(this int input, int toRadix) => RadixConvert((BigInteger) input, toRadix);
+    public static string ConvertRadix(this int input, int toRadix) => ConvertRadix((BigInteger) input, toRadix);
     /// <summary>
     /// 转换为 2 到 86 进制的字符串。
-    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86
+    /// 进制参考：含大写字母 36，含大小写字母 62，含大小写字母和特殊符号 86。
     /// </summary>
-    public static string RadixConvert(this byte input, int toRadix) => RadixConvert((BigInteger) input, toRadix);
-    private static string RadixConvert(this BigInteger input, int toRadix) {
+    public static string ConvertRadix(this byte input, int toRadix) => ConvertRadix((BigInteger) input, toRadix);
+    private static string ConvertRadix(this BigInteger input, int toRadix) {
         const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/+=!?@#$%^&*()[]{}<>;:',";
         if (toRadix < 2 || toRadix > digits.Length) throw new ArgumentOutOfRangeException(nameof(toRadix), $"{nameof(toRadix)} must be between 2 and 86.");
         // 零与负数的预处理

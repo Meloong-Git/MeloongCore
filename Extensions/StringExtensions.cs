@@ -166,7 +166,7 @@ public static class StringExtensions {
 
     /// <summary>
     /// 将字符串中的换行符统一替换为指定字符。
-    /// 若指定了 <paramref name="mergeMultiple"/>，会将多次换行合并成一次换行。
+    /// 若指定了 <paramref name="mergeMultiple"/>，会将多个连续换行符仅替换为一个目标内容。
     /// </summary>
     public static string ReplaceLineEndings(this string input, string newValue, bool mergeMultiple = false) =>
         Regex.Replace(input,
