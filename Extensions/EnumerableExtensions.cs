@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace MeloongCore.Extensions;
+﻿namespace MeloongCore.Extensions;
 public static class EnumerableExtensions {
 
     #region Distinct
@@ -155,6 +153,27 @@ public static class EnumerableExtensions {
             if (element is not null) builder.Append(element.ToString());
         }
         return builder.ToString();
+    }
+
+    #endregion
+
+    #region Dictionary
+
+    /// <summary>
+    /// 从 <see cref="ConcurrentDictionary{TKey, TValue}"/> 中移除具有指定键的元素。
+    /// 返回是否确实移除了元素。
+    /// </summary>
+    public static bool Remove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key) => dict.TryRemove(key, out _);
+
+    /// <summary>
+    /// 将二维数组转换为字典。
+    /// </summary>
+    public static Dictionary<T, T> ToDictionary<T>(this T[,] arr) where T : notnull {
+        Dictionary<T, T> result = [];
+        if (arr.Length == 0) return result;
+        if (arr.GetLength(1) != 2) throw new ArgumentException("数组必须为两列，第一列为 Key，第二列为 Value。");
+        for (int i = 0; i < arr.GetLength(0); i++) result[arr[i, 0]] = arr[i, 1];
+        return result;
     }
 
     #endregion

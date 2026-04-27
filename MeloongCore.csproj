@@ -24,6 +24,7 @@
 
 	<ItemGroup>
 	  <Reference Include="PresentationFramework" />
+	  <Reference Include="System.ServiceModel" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -37,6 +38,7 @@
 		<Using Include="System.IO" />
 		<Using Include="System.Net" />
 		<Using Include="System.Threading" />
+		<Using Include="System.Collections.Concurrent" />
 		<Using Include="System.Runtime.CompilerServices" />
 		<Using Include="System.Runtime.InteropServices" />
 		<Using Include="MeloongCore.Extensions" />
