@@ -1,4 +1,6 @@
-﻿namespace MeloongCore.Extensions;
+﻿using System.Text.RegularExpressions;
+
+namespace MeloongCore.Extensions;
 public static class StringExtensions {
 
     #region 区域性 / 大小写 简化
@@ -169,7 +171,8 @@ public static class StringExtensions {
         str.Contains(oldValue) ? str.Replace(oldValue, newValue()) : str;
 
     /// <summary>
-    /// 将字符串统一至某个长度，过短则用 Code 将其左侧填充，过长则截取靠左的指定长度。
+    /// 将字符串统一至某个长度。
+    /// 过短则用 <paramref name="code"/> 将其左侧填充，过长则截取靠左的指定长度。
     /// </summary>
     public static string EnsureLength(this string? str, char code, int length) {
         if (str == null) str = "";
@@ -179,6 +182,16 @@ public static class StringExtensions {
     /// <summary>
     /// 该字符串中的字符是否均为 ASCII 字符。
     /// </summary>
-    public static bool IsAsciiOnly([DisallowNull] this string input) => input.All(c => (int) c < 128);
+    public static bool IsAsciiOnly([DisallowNull] this string input) => input.All(c => c < 128);
+
+    /// <summary>
+    /// 将字符串中的换行符统一替换为指定字符。
+    /// 若指定了 <paramref name="mergeMultiple"/>，会将多次换行合并成一次换行。
+    /// </summary>
+    public static string ReplaceLineEndings([DisallowNull] this string input, string newValue, bool mergeMultiple = false) => 
+        Regex.Replace(input, 
+            mergeMultiple ? @"(?:\r\n|[\n\r\f\u0085\u2028\u2029])+" : @"\r\n|[\n\r\f\u0085\u2028\u2029]", 
+            newValue.Replace("$", "$$"), // 避免识别成捕获组
+            RegexOptions.Compiled);
 
 }
