@@ -227,7 +227,9 @@ public static class ModernTooltipService {
     private static bool TryGetToolTip(FrameworkElement owner, out object? content, out ToolTip? sourceToolTip) {
         var raw = owner.ToolTip;
         sourceToolTip = raw as ToolTip;
-        content = sourceToolTip?.Content ?? raw;
+        content = sourceToolTip is null
+            ? raw
+            : sourceToolTip.Content ?? (ReferenceEquals(sourceToolTip, borrowedToolTip) ? borrowedContent : null);
         return content is not null && (content is not string text || text.Length > 0);
     }
 
