@@ -169,7 +169,7 @@ public static class DirectoryUtils {
         folder = PathUtils.ForCompare(folder);
         if (folder == PathUtils.ForCompare(Path.GetPathRoot(folder)))
             throw new UnauthorizedAccessException($"不应操作磁盘根目录：{folder}");
-        if (criticalFolders.Value.Any(f => PathUtils.IsParentOf(f, folder)))
+        if (criticalFolders.Value.Any(f => PathUtils.IsParentOf(folder, f)))
             throw new UnauthorizedAccessException($"不应操作文件夹：{folder}");
     }
     private static readonly Lazy<HashSet<string>> criticalFolders = new(() => new(new[] {

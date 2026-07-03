@@ -75,6 +75,18 @@ public class DirectoryUtilsTest : TestWithFolder {
     public void 剪切_安全检查() 
         => Assert.Throws<UnauthorizedAccessException>(() => DirectoryUtils.Move(Paths.Base, Path.Combine(tempFolder, "SafetyCheckDest")));
 
+    [Test]
+    public async Task 删除_安全检查_允许程序目录下的子文件夹() {
+        var folder = Path.Combine(Paths.Base, $"MeloongTest_{Guid.NewGuid():N}");
+        try {
+            DirectoryUtils.Create(folder);
+            DirectoryUtils.Delete(folder);
+            await Assert.That(DirectoryUtils.Exists(folder)).IsFalse();
+        } finally {
+            if (Directory.Exists(PathUtils.ForApi(folder))) Directory.Delete(PathUtils.ForApi(folder), true);
+        }
+    }
+
     #endregion
 
 }
