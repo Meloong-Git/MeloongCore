@@ -319,6 +319,13 @@ public static class EnumerableExtensions {
     }
 
     /// <summary>
+    /// 从集合中移除另一个集合中的所有元素。
+    /// </summary>
+    public static void RemoveAll<T>(this ICollection<T> source, IEnumerable<T> itemsToRemove) {
+        foreach (var item in itemsToRemove) source.Remove(item);
+    }
+
+    /// <summary>
     /// 仅保留满足条件的元素，移除不满足条件的元素。
     /// </summary>
     public static void KeepIf<T>(this ICollection<T> source, Func<T, bool> predicate) {
