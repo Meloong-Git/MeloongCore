@@ -1,6 +1,7 @@
 // 此文件主体由 AI 生成，应作为独立模块，尽量减少与其他内容的耦合。
 // 使用 ModernTooltipService 接管后，TooltipService 仅有 IsEnabled、ShowOnDisabled、InitialShowDelay 仍然有效，其他属性不再生效。
 
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -60,6 +61,8 @@ public static class ModernTooltipService {
     private static readonly Brush backgroundBrush = new SolidColorBrush(Colors.White);
     private static readonly Brush borderBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0xD6, 0xD6));
     private static readonly Brush foregroundBrush = new SolidColorBrush(Color.FromRgb(0x52, 0x52, 0x52));
+    private static readonly DependencyPropertyDescriptor toolTipPropertyDescriptor =
+        DependencyPropertyDescriptor.FromProperty(FrameworkElement.ToolTipProperty, typeof(FrameworkElement));
 
     // 状态字段
     private static readonly DispatcherTimer openTimer = new();
@@ -70,6 +73,7 @@ public static class ModernTooltipService {
     private static Border? popupCard;
     private static ScaleTransform? popupScale;
     private static FrameworkElement? currentOwner;
+    private static FrameworkElement? observedToolTipOwner;
     private static ToolTip? borrowedToolTip;
     private static object? borrowedContent;
 
@@ -323,9 +327,21 @@ public static class ModernTooltipService {
         }
 
         popup!.PlacementTarget = owner;
+        UpdatePosition(owner, point);
+        ObserveToolTip(owner);
+        UpdateContent(owner, content!, sourceToolTip);
+
+        animationToken++;
+        popupCard!.Opacity = 0;
+        popupScale!.ScaleX = closedScale;
+        popupScale.ScaleY = closedScale;
+        popup.IsOpen = true;
+        Animate(1, 1, null);
+    }
+
+    private static void UpdateContent(FrameworkElement owner, object content, ToolTip? sourceToolTip) {
         popupCard!.DataContext = sourceToolTip?.DataContext ?? owner.DataContext;
         popupCard.FlowDirection = owner.FlowDirection;
-        UpdatePosition(owner, point);
 
         // 先还原上一次借出的 Visual，再挂载新的内容，避免同一元素拥有两个逻辑父级。
         popupCard.Child = null;
@@ -347,18 +363,35 @@ public static class ModernTooltipService {
                 Content = content, ContentTemplate = sourceToolTip?.ContentTemplate, ContentTemplateSelector = sourceToolTip?.ContentTemplateSelector,
                 ContentStringFormat = sourceToolTip?.ContentStringFormat, Margin = contentMargin, MaxWidth = contentMaxWidth
             };
+    }
 
-        animationToken++;
-        popupCard.Opacity = 0;
-        popupScale!.ScaleX = closedScale;
-        popupScale.ScaleY = closedScale;
-        popup.IsOpen = true;
-        Animate(1, 1, null);
+    private static void ObserveToolTip(FrameworkElement owner) {
+        if (ReferenceEquals(observedToolTipOwner, owner)) return;
+        StopObservingToolTip();
+        observedToolTipOwner = owner;
+        toolTipPropertyDescriptor.AddValueChanged(owner, OnToolTipChanged);
+    }
+
+    private static void StopObservingToolTip() {
+        if (observedToolTipOwner is null) return;
+        toolTipPropertyDescriptor.RemoveValueChanged(observedToolTipOwner, OnToolTipChanged);
+        observedToolTipOwner = null;
+    }
+
+    private static void OnToolTipChanged(object? sender, EventArgs e) {
+        if (sender is not FrameworkElement owner || !ReferenceEquals(owner, currentOwner) || popup is not { IsOpen: true }) return;
+        if (!CanShowModernTooltip(owner) || !TryGetToolTip(owner, out var content, out var sourceToolTip)) {
+            Close(true);
+            return;
+        }
+
+        UpdateContent(owner, content!, sourceToolTip);
     }
 
     private static void Close(bool animated) {
         openTimer.Stop();
         currentOwner = null;
+        StopObservingToolTip();
 
         if (popup is not { IsOpen: true } || popupCard is null || !animated) {
             HideImmediately();
@@ -375,6 +408,7 @@ public static class ModernTooltipService {
     private static void HideImmediately() {
         openTimer.Stop();
         animationToken++;
+        StopObservingToolTip();
 
         if (popup is not null) popup.IsOpen = false;
         if (popupCard is not null) {
