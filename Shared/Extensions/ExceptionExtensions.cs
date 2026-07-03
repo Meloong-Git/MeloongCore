@@ -127,7 +127,7 @@ public static class ExceptionExtensions {
                 }
                 if (webEx.Status is WebExceptionStatus.NameResolutionFailure or WebExceptionStatus.ConnectFailure or WebExceptionStatus.ReceiveFailure or 
                     WebExceptionStatus.SendFailure or WebExceptionStatus.ConnectionClosed or WebExceptionStatus.KeepAliveFailure or WebExceptionStatus.Timeout or 
-                    WebExceptionStatus.ProxyNameResolutionFailure or WebExceptionStatus.SecureChannelFailure) return true;
+                    WebExceptionStatus.ProxyNameResolutionFailure or WebExceptionStatus.SecureChannelFailure or WebExceptionStatus.TrustFailure) return true;
             } else if (currentEx is SocketException socketEx) {
                 if (socketEx.SocketErrorCode is SocketError.NetworkDown or SocketError.NetworkUnreachable or SocketError.NetworkReset or SocketError.ConnectionAborted or 
                     SocketError.ConnectionReset or SocketError.TimedOut or SocketError.ConnectionRefused or SocketError.HostUnreachable or 
