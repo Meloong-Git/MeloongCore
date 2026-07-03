@@ -195,7 +195,11 @@ public static class ModernTooltipService {
             return;
         }
 
-        if (owner is not null) BeginShow(owner, Mouse.GetPosition(owner));
+        if (owner is not null) {
+            BeginShow(owner, Mouse.GetPosition(owner));
+        } else if (currentOwner is { IsEnabled: false }) {
+            Close(true); // 禁用的控件不会触发 MouseLeave，需要由其他元素收到的 MouseMove 主动关闭
+        }
     }
 
     private static FrameworkElement? FindCurrentTooltipOwner(FrameworkElement reference) {
