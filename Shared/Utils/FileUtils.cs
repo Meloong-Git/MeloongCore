@@ -114,7 +114,7 @@ public static class FileUtils {
         });
     }
     /// <summary>
-    /// 创建文件，并打开 <see cref="FileStream"/>。
+    /// 创建文件，并打开 <see cref="FileMode.Create"/> 模式的 <see cref="FileStream"/>。
     /// 若文件已存在，则会覆盖原文件。
     /// </summary>
     public static FileStream CreateAsStream(string filePath) {
