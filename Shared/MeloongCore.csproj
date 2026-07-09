@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -15,10 +15,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="PolySharp" Version="1.15.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="ThrottleDebounce" Version="2.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -34,15 +36,6 @@
 		<Using Include="Newtonsoft.Json" />
 		<Using Include="Newtonsoft.Json.Linq" />
 		<Using Include="MeloongCore.Extensions" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Reference Include="ThrottleDebounce">
-			<HintPath>..\..\Plain Craft Launcher 2\Resources\ThrottleDebounce.dll</HintPath>
-		</Reference>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>..\..\Plain Craft Launcher 2\Resources\Newtonsoft.Json.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
