@@ -109,4 +109,45 @@ public static class MathUtils {
         return 3 * a * ((0.33333333 + y1 - y2) * a * a + (y2 - 2 * y1) * a + y1);
     }
 
+    /// <summary>
+    /// 对质数进行分解。
+    /// </summary>
+    public static IEnumerable<int> GetPrimeFactors(int num) {
+        num = Math.Abs(num);
+        while (num % 2 == 0 && num > 1) {
+            yield return 2;
+            num /= 2;
+        }
+        int i = 3;
+        int maxFactor = (int) Math.Sqrt(num);
+        while (i <= maxFactor) {
+            while (num % i == 0) {
+                yield return i;
+                num /= i;
+                maxFactor = (int) Math.Sqrt(num);
+            }
+            i += 2;
+        }
+        if (num > 2) yield return num;
+    }
+
+    /// <summary>
+    /// 计算最大公约数。例如 12 和 16 的结果是 4。
+    /// </summary>
+    public static int Gcd(int a, int b) {
+        a = Math.Abs(a);
+        b = Math.Abs(b);
+        while (b != 0) {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+    /// <summary>
+    /// 计算最大公约数。例如 12 和 16 的结果是 4。
+    /// </summary>
+    public static int Gcd(double a, int b)
+        => Gcd((int) Math.Round(a), b);
+
 }
