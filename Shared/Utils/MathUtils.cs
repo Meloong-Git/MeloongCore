@@ -108,6 +108,13 @@ public static class MathUtils {
         } while (!(Math.Abs(b - t) < accuracy) && maxIterations > 0);
         return 3 * a * ((0.33333333 + y1 - y2) * a * a + (y2 - 2 * y1) * a + y1);
     }
+    
+    /// <summary>
+    /// 判断其是否近似等于目标值。
+    /// </summary>
+    /// <param name="tolerance">允许的最大容差，默认为 1e-6。</param>
+    public static bool IsNear(this double value, double target, double tolerance = 1e-6) 
+        => Math.Abs(value - target) < tolerance;
 
     /// <summary>
     /// 对质数进行分解。

@@ -69,6 +69,12 @@ public static class FileUtils {
     /// </summary>
     public static JToken? ReadAsJson(string filePath, Encoding? encoding = null, Type? type = null)
         => FileUtils.ReadAsString(filePath, encoding, type).DeserializeJson();
+    /// <summary>
+    /// 读取 JSON 文件中的所有内容。
+    /// <para/>若指定了 <paramref name="type"/>，则会改为从该类型的程序集中读取嵌入的资源。
+    /// </summary>
+    public static T? ReadAsJson<T>(string filePath, Encoding? encoding = null, Type? type = null) where T : JToken 
+        => FileUtils.ReadAsString(filePath, encoding, type).DeserializeJson<T>();
 
     #endregion
 
@@ -145,10 +151,10 @@ public static class FileUtils {
     public static void Copy(string sourceFilePath, string destFilePath) {
         sourceFilePath = PathUtils.ForCompare(sourceFilePath);
         destFilePath = PathUtils.ForCompare(destFilePath);
-        if (string.Compare(sourceFilePath, destFilePath, ignoreCase:false) == 0) {
+        if (String.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
             // 复制自身到自身，则不执行操作
             Logger.Trace($"复制文件到自身，不执行操作：{sourceFilePath} → {destFilePath}");
-        } else if (string.Compare(sourceFilePath, destFilePath, ignoreCase:true) == 0) {
+        } else if (String.Compare(sourceFilePath, destFilePath, StringComparison.OrdinalIgnoreCase) == 0) {
             // 路径仅大小写不同，等效于重命名
             Logger.Trace($"复制文件到自身，但大小写不同，等效于重命名文件：{sourceFilePath} → {destFilePath}");
             FileUtils.Move(sourceFilePath, destFilePath);
@@ -169,10 +175,10 @@ public static class FileUtils {
     public static void Move(string sourceFilePath, string destFilePath) {
         sourceFilePath = PathUtils.ForCompare(sourceFilePath);
         destFilePath = PathUtils.ForCompare(destFilePath);
-        if (string.Compare(sourceFilePath, destFilePath, ignoreCase: false) == 0) {
+        if (String.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
             // 剪切自身到自身，则不执行操作
             Logger.Trace($"剪切文件到自身，不执行操作：{sourceFilePath} → {destFilePath}");
-        } else if (string.Compare(sourceFilePath, destFilePath, ignoreCase: true) == 0) {
+        } else if (String.Compare(sourceFilePath, destFilePath, StringComparison.OrdinalIgnoreCase) == 0) {
             // 路径仅大小写不同
             Logger.Trace($"剪切文件到自身，但大小写不同：{sourceFilePath} → {destFilePath}");
             Retrier.Attempt(delay: _ => TimeSpan.FromMilliseconds(200), isRetryAllowed: ex => ex is IOException, action: _ => {
