@@ -14,7 +14,7 @@ public static class TaskUtils {
         }
         // 实际分割
         var progressEach = 1d / taskList.Count;
-        return Task.WhenAll(taskList.Select(async (task, index) => {
+        return Task.WhenAll(taskList.Select(async (task, _) => {
             var cp = progress?.SplitBy(progressEach)[0];
             await task(cp).NoCapture();
             cp?.Finish();
@@ -31,7 +31,7 @@ public static class TaskUtils {
         }
         // 实际分割
         var progressEach = 1d / taskList.Count;
-        return Task.WhenAll(taskList.Select(async (task, index) => {
+        return Task.WhenAll(taskList.Select(async (task, _) => {
             var cp = progress?.SplitBy(progressEach)[0];
             var result = await task(cp).NoCapture();
             cp?.Finish();
@@ -51,33 +51,6 @@ public static class TaskUtils {
 
     public static void ForEach<T>(IEnumerable<T> source, Action<T> body)
         => Parallel.ForEach(source, body);
-    public static async Task ForEachAsync<T>(IEnumerable<T> source, int maxDegreeOfParallelism, Func<T, ProgressProvider?, Task> body,
-        CancellationToken cancellationToken = default, ProgressProvider? progress = null) {
-        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var token = linkedCancellationTokenSource.Token;
-        var enumeratorLock = new object();
-        using var enumerator = source.GetEnumerator();
-        async Task WorkerAsync(ProgressProvider? cp) {
-            try {
-                while (true) {
-                    T item;
-                    lock (enumeratorLock) {
-                        token.ThrowIfCancellationRequested();
-                        if (!enumerator.MoveNext()) return;
-                        item = enumerator.Current;
-                    }
-                    await body(item, cp).NoCapture();
-                }
-            } catch {
-                try {
-                    linkedCancellationTokenSource.Cancel(); // 让尚未开始的 worker 尽快停止
-                } catch {
-                }
-                throw;
-            }
-        }
-        await TaskUtils.WhenAll(Enumerable.Repeat(WorkerAsync, maxDegreeOfParallelism), progress).NoCapture();
-    }
 
     /// <summary>
     /// 静默运行程序并等待其结束，返回其输出和退出码。
@@ -94,7 +67,9 @@ public static class TaskUtils {
             RedirectStandardOutput = true, StandardOutputEncoding = encoding,
             RedirectStandardError = true, StandardErrorEncoding = encoding
         };
-        using var program = new Process { StartInfo = info, EnableRaisingEvents = true };
+        using var program = new Process();
+        program.StartInfo = info;
+        program.EnableRaisingEvents = true;
         if (!program.Start()) throw new InvalidOperationException($"运行程序时出现意外错误：{file} {arguments}");
         bool hasTimeout = timeoutMs is > 0;
         Logger.Info($"运行程序，并返回其输出：{file} {arguments}{(hasTimeout ? $"，最长可等待 {timeoutMs}ms" : "")}");

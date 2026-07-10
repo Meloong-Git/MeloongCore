@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace MeloongCore;
@@ -68,7 +69,7 @@ public static class StringUtils {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string FormUrlEscape(string value) 
-        => WebUtility.UrlEncode(value);
+        => WebUtility.UrlEncode(value)!;
 
     /// <summary>
     /// 表单去转义。
@@ -107,14 +108,14 @@ public static class StringUtils {
         if (byteSize < 1000) { // B 级
             return $"{sign}{byteSize} B";
         } else if (byteSize < 1024 * 1000) { // K 级
-            var roundResult = Math.Round(byteSize / 1024D).ToString();
-            return $"{sign}{Math.Round(byteSize / 1024D, (int) (3 - roundResult.Length).Clamp(0, 2))} K";
+            var roundResult = Math.Round(byteSize / 1024D).ToString(CultureInfo.InvariantCulture);
+            return $"{sign}{Math.Round(byteSize / 1024D, (3 - roundResult.Length).Clamp(0, 2))} K";
         } else if (byteSize < 1024 * 1024 * 1000) { // M 级
-            var roundResult = Math.Round(byteSize / 1024D / 1024D).ToString();
-            return $"{sign}{Math.Round(byteSize / 1024D / 1024D, (int) (3 - roundResult.Length).Clamp(0, 2))} M";
+            var roundResult = Math.Round(byteSize / 1024D / 1024D).ToString(CultureInfo.InvariantCulture);
+            return $"{sign}{Math.Round(byteSize / 1024D / 1024D, (3 - roundResult.Length).Clamp(0, 2))} M";
         } else { // G 级
-            var roundResult = Math.Round(byteSize / 1024D / 1024D / 1024D).ToString();
-            return $"{sign}{Math.Round(byteSize / 1024D / 1024D / 1024D, (int) (3 - roundResult.Length).Clamp(0, 2))} G";
+            var roundResult = Math.Round(byteSize / 1024D / 1024D / 1024D).ToString(CultureInfo.InvariantCulture);
+            return $"{sign}{Math.Round(byteSize / 1024D / 1024D / 1024D, (3 - roundResult.Length).Clamp(0, 2))} G";
         }
     }
 

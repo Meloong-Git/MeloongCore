@@ -4,7 +4,7 @@ namespace MeloongCore;
 /// 使用粗粒度锁的线程安全 <see cref="List{T}"/> 实现。
 /// 通常建议使用 <see cref="ConcurrentBag{T}"/> 或其他线程安全集合，它们具有更好的性能。
 /// </summary>
-public class ConcurrentList<T> : IList<T>, IList, IEnumerable, IEnumerable<T> {
+public class ConcurrentList<T> : IList<T>, IList {
 
     private readonly List<T> _items = [];
 

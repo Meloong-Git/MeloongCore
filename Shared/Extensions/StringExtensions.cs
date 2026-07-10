@@ -140,7 +140,7 @@ public static class StringExtensions {
     /// 获取在任意子字符串第一次出现之前的部分，如果未找到任意子字符串则不裁切。
     /// <code>"2024/11-08".BeforeFirstOfAny(["/", "-"]) => "2024"</code>
     /// </summary>
-    public static string BeforeFirstOfAny(this string str, IEnumerable<string> texts, bool ignoreCase = false) {
+    public static string BeforeFirstOfAny(this string str, IEnumerable<string>? texts, bool ignoreCase = false) {
         if (texts == null) return str;
         int pos = -1;
         foreach (string text in texts) {
@@ -165,7 +165,7 @@ public static class StringExtensions {
     /// 获取在任意子字符串最后一次出现之前的部分，如果未找到任意子字符串则不裁切。
     /// <code>"2024/11-08".BeforeLastOfAny(["/", "-"]) => "2024/11"</code>
     /// </summary>
-    public static string BeforeLastOfAny(this string str, IEnumerable<string> texts, bool ignoreCase = false) {
+    public static string BeforeLastOfAny(this string str, IEnumerable<string>? texts, bool ignoreCase = false) {
         if (texts == null) return str;
         int pos = -1;
         foreach (string text in texts) {
@@ -181,8 +181,8 @@ public static class StringExtensions {
     /// 获取在子字符串第一次出现之后的部分，如果未找到子字符串则不裁切。
     /// <code>"2024/11/08".AfterFirst("/") => "11/08"</code>
     /// </summary>
-    public static string AfterFirst(this string str, string text, bool ignoreCase = false) {
-        int pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text, ignoreCase);
+    public static string AfterFirst(this string str, string? text, bool ignoreCase = false) {
+        int pos = string.IsNullOrEmpty(text) ? -1 : str.IndexOfF(text!, ignoreCase);
         if (pos < 0) return str;
         return str[(pos + text!.Length)..];
     }
@@ -190,7 +190,7 @@ public static class StringExtensions {
     /// 获取在任意子字符串第一次出现之后的部分，如果未找到任意子字符串则不裁切。
     /// <code>"2024/11-08".AfterFirstOfAny(["/", "-"]) => "11-08"</code>
     /// </summary>
-    public static string AfterFirstOfAny(this string str, IEnumerable<string> texts, bool ignoreCase = false) {
+    public static string AfterFirstOfAny(this string str, IEnumerable<string>? texts, bool ignoreCase = false) {
         if (texts == null) return str;
         int pos = -1;
         int len = 0;
@@ -210,8 +210,8 @@ public static class StringExtensions {
     /// 获取在子字符串最后一次出现之后的部分，如果未找到子字符串则不裁切。
     /// <code>"2024/11/08".AfterLast("/") => "08"</code>
     /// </summary>
-    public static string AfterLast(this string str, string text, bool ignoreCase = false) {
-        int pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text, ignoreCase);
+    public static string AfterLast(this string str, string? text, bool ignoreCase = false) {
+        int pos = string.IsNullOrEmpty(text) ? -1 : str.LastIndexOfF(text!, ignoreCase);
         if (pos < 0) return str;
         return str[(pos + text!.Length)..];
     }
@@ -219,7 +219,7 @@ public static class StringExtensions {
     /// 获取在任意子字符串最后一次出现之后的部分，如果未找到任意子字符串则不裁切。
     /// <code>"2024/11-08".AfterLastOfAny(["/", "-"]) => "08"</code>
     /// </summary>
-    public static string AfterLastOfAny(this string str, IEnumerable<string> texts, bool ignoreCase = false) {
+    public static string AfterLastOfAny(this string str, IEnumerable<string>? texts, bool ignoreCase = false) {
         if (texts == null) return str;
         int pos = -1;
         int len = 0;
@@ -413,8 +413,7 @@ public static class StringExtensions {
             throw new FormatException("JSON deserialize failed: " + 
                 (length > 2000
                     ? $"{data![..500]}...(total {length} characters)...{data[^500..]}"
-                    : (data ?? "")), 
-            ex);
+                    : (data ?? "")), ex);
         }
     }
     /// <summary>

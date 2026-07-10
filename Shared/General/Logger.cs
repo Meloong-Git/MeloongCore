@@ -122,12 +122,12 @@ public static class Logger {
     public ref struct LogInterpolatedStringHandler {
         private StringBuilder? _sb;
         public readonly bool isEnabled;
-        public LogInterpolatedStringHandler(int literalLength, int formattedCount, LogLevel level, out bool isEnabled) {
+        public LogInterpolatedStringHandler(int literalLength, LogLevel level, out bool isEnabled) {
             this.isEnabled = isEnabled = Logger.Instance.MinLevel <= level;
             _sb = this.isEnabled ? new StringBuilder(literalLength) : null;
         }
         public void AppendLiteral(string value) => _sb?.Append(value);
-        public void AppendFormatted<T>(T value) => _sb?.Append(value?.ToString());
+        public void AppendFormatted<T>(T value) => _sb?.Append(value);
         public void AppendFormatted<T>(T value, string? format) => _sb?.Append(value is IFormattable formattable ? formattable.ToString(format, null) : value?.ToString());
         public void AppendFormatted<T>(T value, int alignment) {
             if (_sb is null) return;
@@ -156,7 +156,7 @@ public static class Logger {
     public ref struct LogInterpolatedStringHandler<TLevel> where TLevel : struct, ILogLevelProvider {
         private LogInterpolatedStringHandler _inner;
         public bool IsEnabled => _inner.isEnabled;
-        public LogInterpolatedStringHandler(int literalLength, int formattedCount, out bool isEnabled) => _inner = new(literalLength, formattedCount, default(TLevel).Level, out isEnabled);
+        public LogInterpolatedStringHandler(int literalLength, int formattedCount, out bool isEnabled) => _inner = new(literalLength, default(TLevel).Level, out isEnabled);
         public void AppendLiteral(string value) => _inner.AppendLiteral(value);
         public void AppendFormatted<T>(T value) => _inner.AppendFormatted(value);
         public void AppendFormatted<T>(T value, string? format) => _inner.AppendFormatted(value, format);

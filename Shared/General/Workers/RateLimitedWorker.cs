@@ -18,7 +18,7 @@ public class RateLimitedWorker(Action workload, double minimalIntervalMs, RateLi
     private readonly RateLimitedAction action = mode switch {
         RateLimitMode.ImmediateThenMerge => Throttler.Throttle(workload, TimeSpan.FromMilliseconds(minimalIntervalMs), leading: true, trailing: true),
         RateLimitMode.WaitUnillNoNewInvoke => Debouncer.Debounce(workload, TimeSpan.FromMilliseconds(minimalIntervalMs), leading: false, trailing: true),
-        RateLimitMode.ImmediateThenIgnore => Debouncer.Debounce(workload, TimeSpan.FromMilliseconds(minimalIntervalMs), leading: true, trailing: false)
+        _ => Debouncer.Debounce(workload, TimeSpan.FromMilliseconds(minimalIntervalMs), leading: true, trailing: false)
     };
 
     public void Start() {

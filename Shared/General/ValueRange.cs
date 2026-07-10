@@ -7,7 +7,7 @@ public sealed class ValueRange<T>(
     T? lower, T? upper,
     bool isLowerInclusive, bool isUpperInclusive,
     bool hasLower, bool hasUpper
-) : IEquatable<ValueRange<T>?> where T : notnull, IComparable<T> {
+) : IEquatable<ValueRange<T>?> where T : IComparable<T> {
 
     #region 基础字段
 
@@ -129,7 +129,7 @@ public sealed class ValueRange<T>(
     /// 取当前范围与另一个范围的交集。
     /// </summary>
     /// <returns> 若两个范围存在交集，则返回交集范围；否则返回 <see langword="null" />。 </returns>
-    public ValueRange<T>? Intersect(ValueRange<T> other) {
+    public ValueRange<T> Intersect(ValueRange<T> other) {
         T? lower = default;
         T? upper = default;
         var isLowerInclusive = true;
@@ -200,12 +200,12 @@ public sealed class ValueRange<T>(
     }
     public override int GetHashCode() {
         int hashCode = 169504101;
-        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(Lower);
-        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(Upper);
-        hashCode=hashCode*-1521134295+HasLower.GetHashCode();
-        hashCode=hashCode*-1521134295+HasUpper.GetHashCode();
-        hashCode=hashCode*-1521134295+IsLowerInclusive.GetHashCode();
-        hashCode=hashCode*-1521134295+IsUpperInclusive.GetHashCode();
+        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(lower);
+        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(upper);
+        hashCode=hashCode*-1521134295+hasLower.GetHashCode();
+        hashCode=hashCode*-1521134295+hasUpper.GetHashCode();
+        hashCode=hashCode*-1521134295+isLowerInclusive.GetHashCode();
+        hashCode=hashCode*-1521134295+isUpperInclusive.GetHashCode();
         return hashCode;
     }
 #pragma warning disable CS8604 // 引用类型参数可能为 null。

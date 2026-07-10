@@ -326,7 +326,7 @@ public static class ModernTooltipService {
             };
         }
 
-        popup!.PlacementTarget = owner;
+        popup.PlacementTarget = owner;
         UpdatePosition(owner, point);
         ObserveToolTip(owner);
         UpdateContent(owner, content!, sourceToolTip);

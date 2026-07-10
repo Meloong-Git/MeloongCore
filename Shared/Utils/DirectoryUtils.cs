@@ -68,10 +68,10 @@ public static class DirectoryUtils {
     public static void Copy(string sourceFolder, string destFolder) {
         sourceFolder = PathUtils.ForCompare(sourceFolder);
         destFolder = PathUtils.ForCompare(destFolder);
-        if (string.Compare(sourceFolder, destFolder, ignoreCase: false) == 0) {
+        if (string.CompareOrdinal(sourceFolder, destFolder) == 0) {
             // 复制自身到自身，则不执行操作
             Logger.Trace($"复制文件夹到自身，不执行操作：{sourceFolder} → {destFolder}");
-        } else if (string.Compare(sourceFolder, destFolder, ignoreCase: true) == 0) {
+        } else if (string.Compare(sourceFolder, destFolder, StringComparison.OrdinalIgnoreCase) == 0) {
             // 路径仅大小写不同，等效于重命名
             Logger.Trace($"复制文件夹到自身，但大小写不同，等效于重命名文件夹：{sourceFolder} → {destFolder}");
             DirectoryUtils.Move(sourceFolder, destFolder);
@@ -90,10 +90,10 @@ public static class DirectoryUtils {
         SafetyCheck(sourceFolder);
         sourceFolder = PathUtils.ForCompare(sourceFolder);
         destFolder = PathUtils.ForCompare(destFolder);
-        if (string.Compare(sourceFolder, destFolder, ignoreCase: false) == 0) {
+        if (string.CompareOrdinal(sourceFolder, destFolder) == 0) {
             // 剪切自身到自身，则不执行操作
             Logger.Trace($"剪切文件夹到自身，不执行操作：{sourceFolder} → {destFolder}");
-        } else if (string.Compare(sourceFolder, destFolder, ignoreCase: true) == 0) {
+        } else if (string.Compare(sourceFolder, destFolder, StringComparison.OrdinalIgnoreCase) == 0) {
             // 路径仅大小写不同
             Logger.Trace($"剪切文件夹到自身，但大小写不同：{sourceFolder} → {destFolder}");
             var temp = Path.Combine(PathUtils.RemoveLastPart(sourceFolder), Path.GetRandomFileName());

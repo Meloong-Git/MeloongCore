@@ -254,7 +254,7 @@ public static class EnumerableExtensions {
                 isFirst = false;
             else
                 builder.Append(split);
-            if (element is not null) builder.Append(element.ToString());
+            if (element is not null) builder.Append(element);
         }
         return builder.ToString();
     }

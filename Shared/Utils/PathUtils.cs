@@ -38,7 +38,7 @@ public static class PathUtils {
         }
         // 逐级向上寻找已存在的文件夹，将不存在的部分挪到 suffix，不再缩短
         while (!DirectoryUtils.Exists(pathToShorten) && !FileUtils.Exists(pathToShorten)) { // 如果路径不存在
-            string parentPath = Path.GetDirectoryName(pathToShorten);
+            string? parentPath = Path.GetDirectoryName(pathToShorten);
             if (string.IsNullOrEmpty(parentPath) || parentPath == pathToShorten) return pathName; // 已经到达根目录，全都不存在，直接返回
             pathToKeep = Path.Combine(PathUtils.GetLastPart(pathToShorten), pathToKeep);
             pathToShorten = parentPath;
@@ -93,10 +93,10 @@ public static class PathUtils {
     /// "https://foo.bar/file/pack.zip?arg=1" → "https://foo.bar/file"
     /// </code></summary>
     public static string RemoveLastPart(string pathName) {
-        if (pathName!.Contains("://")) { // 网络路径
+        if (pathName.Contains("://")) { // 网络路径
             pathName = PathUtils.RemoveSlashSuffix(pathName.BeforeFirst("#").BeforeFirst("?")); // 去除参数
         }
-        return PathUtils.RemoveSlashSuffix(pathName!).BeforeLastOfAny([@"\", "/"]);
+        return PathUtils.RemoveSlashSuffix(pathName).BeforeLastOfAny([@"\", "/"]);
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public static class PathUtils {
     /// "https://foo.bar/file/pack.zip?arg=1" → "pack.zip"
     /// </code></summary>
     public static string GetLastPart(string pathName) {
-        if (pathName!.Contains("://")) { // 网络路径
+        if (pathName.Contains("://")) { // 网络路径
             pathName = PathUtils.RemoveSlashSuffix(pathName.BeforeFirst("#").BeforeFirst("?")); // 去除参数
         } else { // 文件路径
             pathName = PathUtils.RemoveSlashSuffix(pathName);

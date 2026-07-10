@@ -14,7 +14,9 @@ public class JsonConfigProvider : IConfigProvider {
     public static readonly ConcurrentBag<WeakReference<JsonConfigProvider>> allProviders = [];
     private readonly string filePath;
 
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 'required' 修饰符或声明为可以为 null。
     public JsonConfigProvider(string filePath) {
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 'required' 修饰符或声明为可以为 null。
         this.filePath = filePath;
         allProviders.Add(new(this));
         saveAction = Throttler.Throttle(Save, TimeSpan.FromMilliseconds(500), leading: false, trailing: true);
@@ -48,8 +50,8 @@ public class JsonConfigProvider : IConfigProvider {
             } else if (encrypted) {
                 // 需要加密，在 JSON 中保存密文字符串
                 throw new NotImplementedException("加密需要改为使用识别码，现在尚未实现。");
-                Logger.Trace($"配置已修改：{key} = 已加密（{filePath}）");
-                json.Value[key] = CryptographyUtils.AesEncrypt(value is string str ? str : JsonConvert.SerializeObject(value));
+                // Logger.Trace($"配置已修改：{key} = 已加密（{filePath}）");
+                // json.Value[key] = CryptographyUtils.AesEncrypt(value is string str ? str : JsonConvert.SerializeObject(value));
             } else {
                 // 用 JToken 保留原始结构
                 JToken token = JToken.FromObject(value);

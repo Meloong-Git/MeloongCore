@@ -151,10 +151,10 @@ public static class FileUtils {
     public static void Copy(string sourceFilePath, string destFilePath) {
         sourceFilePath = PathUtils.ForCompare(sourceFilePath);
         destFilePath = PathUtils.ForCompare(destFilePath);
-        if (String.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
+        if (string.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
             // 复制自身到自身，则不执行操作
             Logger.Trace($"复制文件到自身，不执行操作：{sourceFilePath} → {destFilePath}");
-        } else if (String.Compare(sourceFilePath, destFilePath, StringComparison.OrdinalIgnoreCase) == 0) {
+        } else if (string.Compare(sourceFilePath, destFilePath, StringComparison.OrdinalIgnoreCase) == 0) {
             // 路径仅大小写不同，等效于重命名
             Logger.Trace($"复制文件到自身，但大小写不同，等效于重命名文件：{sourceFilePath} → {destFilePath}");
             FileUtils.Move(sourceFilePath, destFilePath);
@@ -175,10 +175,10 @@ public static class FileUtils {
     public static void Move(string sourceFilePath, string destFilePath) {
         sourceFilePath = PathUtils.ForCompare(sourceFilePath);
         destFilePath = PathUtils.ForCompare(destFilePath);
-        if (String.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
+        if (string.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
             // 剪切自身到自身，则不执行操作
             Logger.Trace($"剪切文件到自身，不执行操作：{sourceFilePath} → {destFilePath}");
-        } else if (String.Compare(sourceFilePath, destFilePath, StringComparison.OrdinalIgnoreCase) == 0) {
+        } else if (string.Compare(sourceFilePath, destFilePath, StringComparison.OrdinalIgnoreCase) == 0) {
             // 路径仅大小写不同
             Logger.Trace($"剪切文件到自身，但大小写不同：{sourceFilePath} → {destFilePath}");
             Retrier.Attempt(delay: _ => TimeSpan.FromMilliseconds(200), isRetryAllowed: ex => ex is IOException, action: _ => {
@@ -245,6 +245,7 @@ public static class FileUtils {
             try {
                 var iid = typeof(IShellItem).GUID;
                 Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(PathUtils.RemoveExtendedPrefix(target), IntPtr.Zero, ref iid, out item));
+                // ReSharper disable once SuspiciousTypeConversion.Global
                 op = (IFileOperation) new FileOperation();
                 op.SetOperationFlags(0x0040 | 0x0010 | 0x0004); // FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT
                 op.DeleteItem(item, IntPtr.Zero);
