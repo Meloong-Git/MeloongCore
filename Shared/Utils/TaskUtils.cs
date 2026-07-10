@@ -51,6 +51,33 @@ public static class TaskUtils {
 
     public static void ForEach<T>(IEnumerable<T> source, Action<T> body)
         => Parallel.ForEach(source, body);
+    public static async Task ForEachAsync<T>(IEnumerable<T> source, int maxDegreeOfParallelism, Func<T, ProgressProvider?, Task> body,
+        CancellationToken cancellationToken = default, ProgressProvider? progress = null) {
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var token = linkedCancellationTokenSource.Token;
+        var enumeratorLock = new object();
+        using var enumerator = source.GetEnumerator();
+        async Task WorkerAsync(ProgressProvider? cp) {
+            try {
+                while (true) {
+                    T item;
+                    lock (enumeratorLock) {
+                        token.ThrowIfCancellationRequested();
+                        if (!enumerator.MoveNext()) return;
+                        item = enumerator.Current;
+                    }
+                    await body(item, cp).NoCapture();
+                }
+            } catch {
+                try {
+                    linkedCancellationTokenSource.Cancel(); // 让尚未开始的 worker 尽快停止
+                } catch {
+                }
+                throw;
+            }
+        }
+        await TaskUtils.WhenAll(Enumerable.Repeat(WorkerAsync, maxDegreeOfParallelism), progress).NoCapture();
+    }
 
     /// <summary>
     /// 静默运行程序并等待其结束，返回其输出和退出码。
