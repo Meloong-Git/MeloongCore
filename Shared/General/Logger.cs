@@ -202,7 +202,7 @@ public class BaseLogger {
                 (message is null ? "" : $"{message}：") + ex.GetDisplay(true);
             formattedMessage = Format(formattedMessage, level, filePath, ex);
             // 将格式化后的日志文本置入缓冲区
-            if (avaliable || queue.Count < 100) { // 在初始化前保留至多 100 条日志
+            if (available || queue.Count < 100) { // 在初始化前保留至多 100 条日志
                 queue.Enqueue(new(level, formattedMessage));
                 queuedEvent.Set();
             }
@@ -247,27 +247,23 @@ public class BaseLogger {
 
     #region 缓冲区与初始化
 
-    internal volatile bool avaliable = false;
+    internal volatile bool available = false;
     public record struct LogEntry(LogLevel Level, string message);
     internal readonly ConcurrentQueue<LogEntry> queue = new();
     internal readonly AutoResetEvent queuedEvent = new(false);
 
-    /// <summary>
-    /// 初始化此 Logger。
-    /// 会在新线程中，将之前的日志文件依次后移，最多保留 5 个文件。
-    /// </summary>
     public BaseLogger() {
         var thread = new Thread(() => {
             try {
                 Init();
-                avaliable = true;
+                available = true;
                 Logger.Info($"{GetType().Name} 日志初始化结束");
-                while (avaliable) {
+                while (available) {
                     queuedEvent.WaitOne();
                     Flush();
                 }
             } catch (Exception ex) {
-                avaliable = false;
+                available = false;
                 Logger.SendToDebug(ex, "基础日志线程出错");
             }
         }) { Name = nameof(Logger), Priority = ThreadPriority.Lowest, IsBackground = true };
@@ -280,7 +276,7 @@ public class BaseLogger {
     /// </summary>
     public void Flush() {
         try {
-            if (!avaliable) return;
+            if (!available) return;
             lock (flushLock) {
                 while (queue.TryDequeue(out LogEntry entry)) Output(entry); // writer 指定了 AutoFlush
             }
@@ -305,7 +301,10 @@ public class FileLogger : BaseLogger, IDisposable {
     public string fileNameSuffix = ".txt";
     private StreamWriter? writer;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// 初始化此 Logger。
+    /// 会在新线程中，将之前的日志文件依次后移，最多保留 5 个文件。
+    /// </summary>
     public override void Init() {
         // 轮转日志文件，将 Log1.txt 留空
         Logger.Info("开始轮转日志文件");
@@ -335,7 +334,7 @@ public class FileLogger : BaseLogger, IDisposable {
     }
 
     public void Dispose() {
-        avaliable = false;
+        available = false;
         if (writer is not null) ((IDisposable) writer).Dispose();
         queuedEvent.Dispose();
         GC.SuppressFinalize(this);
