@@ -18,12 +18,17 @@ public static class RegistryUtils {
         return (result is string str && str == NULL_STRING ? null : result, true);
     }
     /// <summary>
-    /// 读取注册表键，若该键不存在则返回 <paramref name="defaultValue"/>。
+    /// 读取注册表键，若该键不存在或发生异常则返回 <paramref name="defaultValue"/>。
     /// <para/>若键值为 <see cref="NULL_STRING"/>，则返回 <c>null</c>。
     /// </summary>
-    public static object? ReadOrDefault(string keyPath, object? defaultValue) {
-        var (result, exists) = Read(keyPath);
-        return exists ? result : defaultValue;
+    public static object? TryRead(string keyPath, object? defaultValue = null) {
+        try {
+            var (result, exists) = Read(keyPath);
+            return exists ? result : defaultValue;
+        } catch (Exception ex) {
+            Logger.Warn(ex, $"读取注册表键失败（{keyPath}）");
+            return defaultValue;
+        }
     }
 
     /// <summary>
