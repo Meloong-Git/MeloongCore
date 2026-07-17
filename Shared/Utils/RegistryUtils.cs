@@ -6,79 +6,68 @@ public static class RegistryUtils {
     public const string NULL_STRING = "__NULL__";
 
     /// <summary>
-    /// 读取注册表键。
+    /// 读取注册表值。
     /// <para/>若键值为 <see cref="NULL_STRING"/>，则返回 <c>null</c>。
     /// </summary>
-    public static (object? result, bool exists) Read(string keyPath) {
-        var (hive, subKeyPath, valueName) = ParsePath(keyPath);
-        using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
-        using RegistryKey? subKey = baseKey.OpenSubKey(subKeyPath);
-        var result = subKey?.GetValue(valueName);
+    public static (object? result, bool exists) Read(string folder, string entry) {
+        using RegistryKey? folderKey = GetRegistryKey(folder);
+        var result = folderKey?.GetValue(entry);
         if (result is null) return (null, false);
         return (result is string str && str == NULL_STRING ? null : result, true);
     }
     /// <summary>
-    /// 读取注册表键，若该键不存在或发生异常则返回 <paramref name="defaultValue"/>。
+    /// 读取注册表值，若该值不存在或发生异常则返回 <paramref name="defaultValue"/>。
     /// <para/>若键值为 <see cref="NULL_STRING"/>，则返回 <c>null</c>。
     /// </summary>
-    public static object? TryRead(string keyPath, object? defaultValue = null) {
+    public static object? TryRead(string folder, string entry, object? defaultValue = null) {
         try {
-            var (result, exists) = Read(keyPath);
+            var (result, exists) = Read(folder, entry);
             return exists ? result : defaultValue;
         } catch (Exception ex) {
-            Logger.Warn(ex, $"读取注册表键失败（{keyPath}）");
+            Logger.Warn(ex, $"读取注册表值失败（{folder}，{entry}）");
             return defaultValue;
         }
     }
 
     /// <summary>
-    /// 写入注册表键。
+    /// 写入注册表值。
     /// <para/>会自动创建对应的子键。
     /// <para/>若 <paramref name="value"/> 为 <c>null</c>，则写入 <see cref="NULL_STRING"/>。
     /// </summary>
-    public static void Write(string keyPath, object? value) {
-        var (hive, subKeyPath, valueName) = ParsePath(keyPath);
-        using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
-        using RegistryKey subKey = baseKey.CreateSubKey(subKeyPath);
-        subKey.SetValue(valueName, value ?? NULL_STRING);
+    public static void Write(string folder, string entry, object? value) {
+        using RegistryKey folderKey = GetRegistryKey(folder, create: true)!;
+        folderKey.SetValue(entry, value ?? NULL_STRING);
     }
 
     /// <summary>
-    /// 判断对应的注册表键是否存在。
+    /// 判断对应的注册表值是否存在。
     /// </summary>
-    public static bool Has(string keyPath) {
-        var (hive, subKeyPath, valueName) = ParsePath(keyPath);
-        using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
-        using RegistryKey? subKey = baseKey.OpenSubKey(subKeyPath);
-        if (subKey is null) return false;
+    public static bool Has(string folder, string entry) {
+        using RegistryKey? folderKey = GetRegistryKey(folder);
+        if (folderKey is null) return false;
         object notFound = new();
-        return !ReferenceEquals(subKey.GetValue(valueName, notFound), notFound);
+        return !ReferenceEquals(folderKey.GetValue(entry, notFound), notFound);
     }
 
     /// <summary>
-    /// 删除注册表键。若不存在则不执行操作。
+    /// 删除注册表值。若不存在则不执行操作。
     /// </summary>
-    public static void Delete(string keyPath) {
-        var (hive, subKeyPath, valueName) = ParsePath(keyPath);
-        using RegistryKey baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
-        using RegistryKey? subKey = baseKey.OpenSubKey(subKeyPath, writable: true);
-        subKey?.DeleteValue(valueName, throwOnMissingValue: false);
+    public static void Delete(string folder, string entry) {
+        using RegistryKey? folderKey = GetRegistryKey(folder, writable: true);
+        folderKey?.DeleteValue(entry, throwOnMissingValue: false);
     }
 
-    private static (RegistryHive Hive, string SubKeyPath, string ValueName) ParsePath(string fullPath) {
-        int hiveEnd = fullPath.IndexOf('\\');
-        int valueStart = fullPath.LastIndexOf('\\');
-        if (hiveEnd <= 0 || hiveEnd > valueStart) throw new ArgumentException($"注册表路径不完整（{fullPath}）", nameof(fullPath));
-        RegistryHive hive = fullPath.Substring(0, hiveEnd).ToUpperInvariant() switch {
-            "HKEY_CLASSES_ROOT" => RegistryHive.ClassesRoot,
-            "HKEY_CURRENT_USER" => RegistryHive.CurrentUser,
-            "HKEY_LOCAL_MACHINE" => RegistryHive.LocalMachine,
-            "HKEY_USERS" => RegistryHive.Users,
-            "HKEY_CURRENT_CONFIG" => RegistryHive.CurrentConfig,
+    private static RegistryKey? GetRegistryKey(string fullPath, bool writable = false, bool create = false) {
+        using RegistryKey key = fullPath.BeforeFirst("\\").ToUpperInvariant() switch {
+            "HKEY_CLASSES_ROOT" => Registry.ClassesRoot,
+            "HKEY_CURRENT_USER" => Registry.CurrentUser,
+            "HKEY_LOCAL_MACHINE" => Registry.LocalMachine,
+            "HKEY_USERS" => Registry.Users,
+            "HKEY_CURRENT_CONFIG" => Registry.CurrentConfig,
             _ => throw new ArgumentException($"注册表路径有误（{fullPath}）", nameof(fullPath))
         };
-        string subKeyPath = valueStart == hiveEnd ? "" : fullPath.Substring(hiveEnd + 1, valueStart - hiveEnd - 1);
-        return (hive, subKeyPath, fullPath.Substring(valueStart + 1));
+        string subKey = fullPath.AfterFirst("\\");
+        return create ? key.CreateSubKey(subKey) : key.OpenSubKey(subKey, writable);
     }
 
 }
