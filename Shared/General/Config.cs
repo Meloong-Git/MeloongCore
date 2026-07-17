@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
-
 namespace MeloongCore;
+
+#region ConfigProvider | 配置提供器
 
 public interface IConfigProvider {
     void Set<T>(string key, T? value, bool encrypted);
@@ -115,60 +116,91 @@ public class JsonConfigProvider : IConfigProvider {
     }
 }
 
-public static class ConfigUtils {
+public static class ConfigProviders {
     public static readonly JsonConfigProvider AppData = new(Path.Combine(Paths.AppDataThenName, "config.json"));
-
-    /// <summary>
-    /// 立即保存所有配置。
-    /// </summary>
-    public static void SaveAll() {
-        foreach (var weakRef in JsonConfigProvider.allProviders) {
-            if (weakRef.TryGetTarget(out var provider)) provider.Save();
-        }
-    }
-
-    /// <summary>
-    /// 从 secret.json 中读取特定密钥，如果未找到对应密钥则抛出异常。
-    /// </summary>
-    public static string GetSecret(string key) 
-        => secret.Read<string>(key, null, false) ?? throw new KeyNotFoundException($"未找到密钥：{key}");
-    private static readonly JsonConfigProvider secret = new(Path.Combine(Paths.AppData, "secret.json"));
+    public static readonly JsonConfigProvider Secret = new(Path.Combine(Paths.AppData, "secret.json"));
 }
 
-public class ConfigEntry<T>(string key, T? defaultValue, IConfigProvider? defaultProvider = null, bool encrypted = false) {
+#endregion
 
-    public IConfigProvider DefaultProvider => defaultProvider ?? ConfigUtils.AppData;
+#region ConfigEntry | 单个配置项
+
+/// <summary>
+/// 使用固定的 <see cref="IConfigProvider"/> 的配置项。
+/// <para/>若不指定 <paramref name="provider"/>，则使用 <see cref="ConfigProviders.AppData"/>。
+/// </summary>
+public class ConfigEntry<T>(string key, T? defaultValue, bool encrypted = false, IConfigProvider? provider = null) {
+    public IConfigProvider Provider { get; } = provider ?? ConfigProviders.AppData;
+
     /// <summary>
-    /// 当设置项的值被改变时触发，参数为新值。新值可能和旧值相同。
+    /// 当调整配置项的值时触发，参数为新值。<para/>新值可能和旧值相同。
     /// </summary>
     public event Action<T?, IConfigProvider>? Changed;
 
-    public void Edit(Func<T?, T?> editFunc, IConfigProvider? providerOverride = null) {
-        var provider = providerOverride ?? DefaultProvider;
-        Set(editFunc(Get(provider)), provider);
+    public void Edit(Func<T?, T?> editFunc) => Set(editFunc(Get()));
+    public void Edit(RefAction editAction) {
+        var current = Get();
+        editAction(ref current);
+        Set(current);
     }
-    public void Edit(RefAction editAction, IConfigProvider? providerOverride = null) {
-        var provider = providerOverride ?? DefaultProvider;
+    public delegate void RefAction(ref T? value);
+
+    public void Set(T? value) {
+        Provider.Set(key, value, encrypted);
+        Changed?.Invoke(value, Provider);
+    }
+    public void Reset() {
+        if (!Provider.HasValue(key)) return; // 值未设置，无需重置
+        Provider.Remove(key);
+        Changed?.Invoke(defaultValue, Provider);
+    }
+    public T? Get() => Provider.Read(key, defaultValue, encrypted);
+    public bool HasValue() => Provider.HasValue(key);
+}
+
+/// <summary>
+/// 在每次操作时动态指定 <see cref="IConfigProvider"/> 的配置项。
+/// </summary>
+public class DynamicConfigEntry<T>(string key, T? defaultValue, bool encrypted = false) {
+    /// <summary>
+    /// 当调整配置项的值时触发，参数为新值。<para/>新值可能和旧值相同。
+    /// </summary>
+    public event Action<T?, IConfigProvider>? Changed;
+
+    public void Edit(Func<T?, T?> editFunc, IConfigProvider provider) => Set(editFunc(Get(provider)), provider);
+    public void Edit(RefAction editAction, IConfigProvider provider) {
         var current = Get(provider);
         editAction(ref current);
         Set(current, provider);
     }
     public delegate void RefAction(ref T? value);
 
-    public void Set(T? value, IConfigProvider? providerOverride = null) {
-        var provider = providerOverride ?? DefaultProvider;
+    public void Set(T? value, IConfigProvider provider) {
         provider.Set(key, value, encrypted);
         Changed?.Invoke(value, provider);
     }
-    public void Reset(IConfigProvider? providerOverride = null) {
-        var provider = providerOverride ?? DefaultProvider;
+    public void Reset(IConfigProvider provider) {
         if (!provider.HasValue(key)) return; // 值未设置，无需重置
         provider.Remove(key);
         Changed?.Invoke(defaultValue, provider);
     }
-    public T? Get(IConfigProvider? providerOverride = null)
-        => (providerOverride ?? DefaultProvider).Read(key, defaultValue, encrypted);
-    public bool HasValue(IConfigProvider? providerOverride = null)
-        => (providerOverride ?? DefaultProvider).HasValue(key);
-    public static implicit operator T?(ConfigEntry<T> entry) => entry.Get();
+    public T? Get(IConfigProvider provider) => provider.Read(key, defaultValue, encrypted);
+    public bool HasValue(IConfigProvider provider) => provider.HasValue(key);
+}
+
+#endregion
+
+public static class ConfigUtils {
+
+    /// <summary>立即保存所有配置。</summary>
+    public static void SaveAll() {
+        foreach (var weakRef in JsonConfigProvider.allProviders) {
+            if (weakRef.TryGetTarget(out var provider)) provider.Save();
+        }
+    }
+
+    /// <summary>从 secret.json 中读取特定密钥，如果未找到对应密钥则抛出异常。</summary>
+    public static string GetSecret(string key)
+        => ConfigProviders.Secret.Read<string>(key, null, false) ?? throw new KeyNotFoundException($"未找到密钥：{key}");
+
 }
