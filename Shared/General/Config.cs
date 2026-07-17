@@ -117,7 +117,7 @@ public class JsonConfigProvider : IConfigProvider {
 }
 
 public static class ConfigProviders {
-    public static readonly JsonConfigProvider AppData = new(Path.Combine(Paths.AppDataThenName, "config.json"));
+    public static JsonConfigProvider Default = new(Path.Combine(Paths.AppDataThenName, "config.json"));
     public static readonly JsonConfigProvider Secret = new(Path.Combine(Paths.AppData, "secret.json"));
 }
 
@@ -127,10 +127,10 @@ public static class ConfigProviders {
 
 /// <summary>
 /// 使用固定的 <see cref="IConfigProvider"/> 的配置项。
-/// <para/>若不指定 <paramref name="provider"/>，则使用 <see cref="ConfigProviders.AppData"/>。
+/// <para/>若不指定 <paramref name="provider"/>，则使用 <see cref="ConfigProviders.Default"/>。
 /// </summary>
 public class ConfigEntry<T>(string key, T? defaultValue, bool encrypted = false, IConfigProvider? provider = null) {
-    public IConfigProvider Provider { get; } = provider ?? ConfigProviders.AppData;
+    public IConfigProvider Provider { get; } = provider ?? ConfigProviders.Default;
 
     /// <summary>
     /// 当调整配置项的值时触发，参数为新值。<para/>新值可能和旧值相同。
