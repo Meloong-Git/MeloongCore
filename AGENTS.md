@@ -2,6 +2,12 @@
 
 本仓库的详细开发指示保存在 `.agents` 目录中。
 
+## 基础环境
+
+- 使用中文沟通。
+- 通用代码需要同时考虑 Windows 与 macOS；平台特有代码必须保持明确边界。
+- 文本文件统一使用 UTF-8 无 BOM（代码页 65001）。使用 Windows PowerShell 读取或写入文本时必须显式指定 `-Encoding UTF8`。
+
 处理本仓库内容前，必须完整读取并遵循：
 
 - [MeloongCore 仓库指示](.agents/仓库指示.md)
