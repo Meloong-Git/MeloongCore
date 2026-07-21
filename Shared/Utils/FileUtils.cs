@@ -139,6 +139,17 @@ public static class FileUtils {
         => Retrier.Attempt(delay: _ => TimeSpan.FromMilliseconds(200), isRetryAllowed: ex => ex is IOException, func: _ 
             => Path.GetTempFileName());
 
+    /// <summary>
+    /// 从 <paramref name="type"/> 的程序集中，读取指定 <paramref name="logicalName"/> 的嵌入的资源，写入到 <paramref name="localFilePath"/> 中。
+    /// <para/> 如果文件已存在且内容相同，则不会写入。
+    /// </summary>
+    public static void ExtractResources(string logicalName, string localFilePath, Type type) {
+        var content = ReadAsBytes(logicalName, type);
+        if (Exists(localFilePath) && CryptographyUtils.ComputeFileHash(localFilePath) == CryptographyUtils.ComputeHash(content)) return;
+        Logger.Info($"将资源写入到文件：{logicalName} → {localFilePath}");
+        Write(localFilePath, content);
+    }
+
     #endregion
 
     #region 复制 / 剪切
