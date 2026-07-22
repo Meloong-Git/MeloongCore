@@ -126,6 +126,13 @@ public static class ConfigProviders {
 #region ConfigEntry | 单个配置项
 
 /// <summary>
+/// 当前获取到的配置值。
+/// </summary>
+public class PreviewGetEventArgs<T>(T? value) : EventArgs {
+    public T? Value { get; set; } = value;
+}
+
+/// <summary>
 /// 使用固定的 <see cref="IConfigProvider"/> 的配置项。
 /// <para/>若不指定 <paramref name="provider"/>，则使用 <see cref="ConfigProviders.Default"/>。
 /// </summary>
@@ -135,7 +142,11 @@ public class ConfigEntry<T>(string key, T? defaultValue, bool encrypted = false,
     /// <summary>
     /// 当调整配置项的值时触发，参数为新值。<para/>新值可能和旧值相同。
     /// </summary>
-    public event Action<T?, IConfigProvider>? Changed;
+    public event Action<T?>? Changed;
+    /// <summary>
+    /// 当获取配置项的值时触发。
+    /// </summary>
+    public event Action<PreviewGetEventArgs<T>, IConfigProvider>? PreviewGet;
 
     public void Edit(Func<T?, T?> editFunc) => Set(editFunc(Get()));
     public void Edit(RefAction editAction) {
@@ -147,14 +158,18 @@ public class ConfigEntry<T>(string key, T? defaultValue, bool encrypted = false,
 
     public void Set(T? value) {
         Provider.Set(key, value, encrypted);
-        Changed?.Invoke(value, Provider);
+        Changed?.Invoke(value);
     }
     public void Reset() {
         if (!Provider.HasValue(key)) return; // 值未设置，无需重置
         Provider.Remove(key);
-        Changed?.Invoke(defaultValue, Provider);
+        Changed?.Invoke(defaultValue);
     }
-    public T? Get() => Provider.Read(key, defaultValue, encrypted);
+    public T? Get() {
+        PreviewGetEventArgs<T> args = new(Provider.Read(key, defaultValue, encrypted));
+        PreviewGet?.Invoke(args, Provider);
+        return args.Value;
+    }
     public bool HasValue() => Provider.HasValue(key);
 }
 
@@ -165,7 +180,12 @@ public class DynamicConfigEntry<T>(string key, T? defaultValue, bool encrypted =
     /// <summary>
     /// 当调整配置项的值时触发，参数为新值。<para/>新值可能和旧值相同。
     /// </summary>
-    public event Action<T?, IConfigProvider>? Changed;
+    public event Action<T?>? Changed;
+    /// <summary>
+    /// 当获取配置项的值时触发。
+    /// </summary>
+    public event Action<PreviewGetEventArgs<T>, IConfigProvider>? PreviewGet;
+
 
     public void Edit(Func<T?, T?> editFunc, IConfigProvider provider) => Set(editFunc(Get(provider)), provider);
     public void Edit(RefAction editAction, IConfigProvider provider) {
@@ -177,14 +197,19 @@ public class DynamicConfigEntry<T>(string key, T? defaultValue, bool encrypted =
 
     public void Set(T? value, IConfigProvider provider) {
         provider.Set(key, value, encrypted);
-        Changed?.Invoke(value, provider);
+        Changed?.Invoke(value);
     }
     public void Reset(IConfigProvider provider) {
         if (!provider.HasValue(key)) return; // 值未设置，无需重置
         provider.Remove(key);
-        Changed?.Invoke(defaultValue, provider);
+        Changed?.Invoke(defaultValue);
     }
-    public T? Get(IConfigProvider provider) => provider.Read(key, defaultValue, encrypted);
+    public T? Get(IConfigProvider provider) {
+        PreviewGetEventArgs<T> args = new(provider.Read(key, defaultValue, encrypted));
+        PreviewGet?.Invoke(args, provider);
+        return args.Value;
+    }
+
     public bool HasValue(IConfigProvider provider) => provider.HasValue(key);
 }
 
