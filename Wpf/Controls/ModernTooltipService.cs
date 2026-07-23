@@ -201,8 +201,8 @@ public static class ModernTooltipService {
 
         if (owner is not null) {
             BeginShow(owner, Mouse.GetPosition(owner));
-        } else if (currentOwner is { IsEnabled: false }) {
-            Close(true); // 禁用的控件不会触发 MouseLeave，需要由其他元素收到的 MouseMove 主动关闭
+        } else if (currentOwner is not null) {
+            Close(true); // 弹窗遮挡等情况可能不会触发原拥有者的 MouseLeave，需要由其他元素收到的 MouseMove 主动关闭
         }
     }
 
@@ -219,6 +219,14 @@ public static class ModernTooltipService {
 
         var owner = FindOwnerInAncestors(Mouse.DirectlyOver as DependencyObject);
         if (owner is not null) return owner;
+
+        // 重新从窗口根元素命中测试，避免弹窗出现后 Mouse.DirectlyOver 尚未刷新，继续命中已被遮挡的旧元素。
+        if (PresentationSource.FromVisual(reference)?.RootVisual is UIElement root) {
+            var rootHit = root.InputHitTest(Mouse.GetPosition(root)) as DependencyObject;
+            owner = FindOwnerInAncestors(rootHit);
+            if (owner is not null) return owner;
+            if (rootHit is not null && !IsSameTreeBranch(rootHit, reference)) return null;
+        }
 
         return reference.InputHitTest(Mouse.GetPosition(reference)) is DependencyObject hit
             ? FindOwnerInAncestors(hit)
@@ -307,6 +315,10 @@ public static class ModernTooltipService {
 
     private static void Show(FrameworkElement owner, Point point) {
         if (!ReferenceEquals(owner, currentOwner) || !CanShowModernTooltip(owner) || !TryGetToolTip(owner, out var content, out var sourceToolTip)) return;
+        if (!ReferenceEquals(owner, FindCurrentTooltipOwner(owner))) {
+            Close(false);
+            return;
+        }
 
         if (popup is null) {
             popupScale = new ScaleTransform(closedScale, closedScale);
