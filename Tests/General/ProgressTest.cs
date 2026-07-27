@@ -46,7 +46,7 @@ public class ProgressTest : TestBase {
         progress.Set(0.75, skiped: true);
 
         await Assert.That(changedCount).IsEqualTo(2);
-        await Assert.That(Math.Abs(progress.GetIncrement() - 2.0 / 3) < 0.000001).IsTrue();
+        await Assert.That(Math.Abs(progress.GetIncreasing() - 2.0 / 3) < 0.000001).IsTrue();
     }
 
     [Test]

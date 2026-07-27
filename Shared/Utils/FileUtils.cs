@@ -325,7 +325,7 @@ public static class FileUtils {
     /// 以只读模式打开压缩文件。
     /// 会先尝试 UTF8 编码，失败后换用 GB18030 编码。
     /// </summary>
-    public static ZipArchive OpenZip(string zipFilePath) {
+    public static ZipArchive OpenZip(string zipFilePath, CancellationToken c = default) {
         ZipArchive TryOpen(Encoding encoding) {
             Logger.Trace($"尝试以 {encoding.EncodingName} 编码打开压缩包：{zipFilePath}");
             var result = ZipFile.Open(PathUtils.ForApi(zipFilePath), ZipArchiveMode.Read, encoding);
@@ -337,23 +337,26 @@ public static class FileUtils {
                 throw;
             }
         }
-        try {
-            try { // 尝试两种编码
-                return TryOpen(new UTF8Encoding(false, true));
-            } catch (DecoderFallbackException) {
-                return TryOpen(Encoding.GetEncoding("GB18030"));
+        return Retrier.Attempt(delay: _ => TimeSpan.FromMilliseconds(200), maxAttempts:10, isRetryAllowed: ex => ex is IOException, cancellationToken: c, func: _ => {
+            try {
+                try { // 尝试两种编码
+                    return TryOpen(new UTF8Encoding(false, true));
+                } catch (DecoderFallbackException) {
+                    return TryOpen(Encoding.GetEncoding("GB18030"));
+                }
+            } catch (InvalidDataException ex) {
+                throw new InvalidDataException($"文件不是压缩包，或者文件已损坏（{zipFilePath}）", ex);
             }
-        } catch (InvalidDataException ex) {
-            throw new InvalidDataException($"文件不是压缩包，或者文件已损坏（{zipFilePath}）", ex);
-        }
+        });
+        
     }
 
     /// <summary>
     /// 尝试根据后缀名判断文件种类并解压文件，支持 gz 与 zip，会尝试将 jar 以 zip 方式解压。
     /// 会自动创建文件夹。会覆盖已有文件，但不会删除多余文件。
     /// </summary>
-    /// <param name="progressHandler">参数为已完成的总比例（0~1）。</param>
-    public static void ExtractToDirectory(string compressionFile, string outputDirectory, Action<double>? progressHandler = null) {
+    /// <param name="p">参数为已完成的总比例（0~1）。</param>
+    public static void ExtractToDirectory(string compressionFile, string outputDirectory, CancellationToken c = default, ProgressProvider? p = null) {
         compressionFile = PathUtils.ForApi(compressionFile);
         DirectoryUtils.Create(outputDirectory);
         // 解压 gz（gz 不需要考虑编码）
@@ -363,18 +366,19 @@ public static class FileUtils {
             using var fileStream = FileUtils.ReadAsStream(compressionFile);
             using var gzipStream = new GZipStream(fileStream, CompressionMode.Decompress);
             FileUtils.Write(outFilePath, gzipStream);
-            progressHandler?.Invoke(1);
+            p?.Finish();
             return;
         }
         // 解压 zip
-        using var archive = FileUtils.OpenZip(compressionFile);
-        int totalCount = archive.Entries.Count;
+        using var archive = FileUtils.OpenZip(compressionFile, c);
+        var entries = archive.Entries.Where(e => !string.IsNullOrEmpty(e.Name)).ToList(); // 跳过文件夹条目（ZipArchive 会将文件夹也作为一个 entry，但它们的 Name 为空）
+        int totalCount = entries.Count;
         int doneCount = 0;
         Logger.Trace($"解压 zip 文件：{compressionFile} → {outputDirectory}（共 {totalCount} 项）");
-        foreach (var entry in archive.Entries) {
+        foreach (var entry in entries) {
+            c.ThrowIfCancellationRequested();
             doneCount++;
-            if (totalCount > 0) progressHandler?.Invoke((double) doneCount / totalCount);
-            if (string.IsNullOrEmpty(entry.Name)) continue; // 跳过文件夹条目（ZipArchive 会将文件夹也作为一个 entry，但它们的 Name 为空）
+            if (totalCount > 0) p?.Set((double) doneCount / totalCount);
             // ZipSlip 修复
             string outputFilePath = Path.Combine(outputDirectory, entry.FullName);
             if (!PathUtils.IsParentOf(outputDirectory, outputFilePath))

@@ -21,11 +21,11 @@ public class TaskUtilsTest : TestBase {
         ], progress);
 
         await Assert.That(ReferenceEquals(firstProgress, secondProgress)).IsFalse();
-        await Assert.That(progress.GetIncrement()).IsEqualTo(0.5);
+        await Assert.That(progress.GetIncreasing()).IsEqualTo(0.5);
         continueSecond.SetResult(null);
         var results = await whenAll;
         await Assert.That(string.Join(",", results)).IsEqualTo("1,2");
-        await Assert.That(progress.GetIncrement()).IsEqualTo(1);
+        await Assert.That(progress.GetIncreasing()).IsEqualTo(1);
     }
 
 }

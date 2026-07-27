@@ -159,16 +159,18 @@ public class ProgressProvider {
         }
     }
 
+    public bool IsFinished => GetRaw().actual + GetRaw().skiped > 0.9999999;
+
     private (double actual, double skiped) observedProgress = (0, 0);
     private double incrementProgress = 0;
     /// <summary>
     /// 获取一个在多次观测之间必定单调递增的进度值，范围为 [0, 1]。
     /// </summary>
-    public double GetIncrement() {
+    public double GetIncreasing() {
         lock (this) {
             (double actual, double skiped) current = GetRaw();
             if (current == observedProgress) return incrementProgress; // 未改变
-            if (current.actual + current.skiped > 0.9999999) { // 已完成
+            if (IsFinished) { // 已完成
                 incrementProgress = 1;
             } else if (current.actual >= observedProgress.actual) { // 进度增加
                 incrementProgress += (1 - incrementProgress) *
@@ -197,7 +199,7 @@ public class ProgressObserver : RateLimitedWorker {
     }
     private void StartObserver((double actual, double skiped) raw) => Start();
     private static void Observe(ProgressProvider provider, Action<double> updateAction) {
-        double progress = provider.GetIncrement();
+        double progress = provider.GetIncreasing();
         // TODO: 添加平缓过渡
         updateAction(progress);
     }

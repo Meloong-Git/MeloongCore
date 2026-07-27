@@ -7,10 +7,10 @@ public class FileUtilsTest : TestWithFolder {
     [Arguments("GB Encoding.zip")]
     [Arguments("UTF8 Encoding.zip")]
     public async Task 解压_ReadZip(string testFile) {
-        double progress = 0;
         string output = Path.Combine(tempFolder, "Extracted");
-        FileUtils.ExtractToDirectory(GetTestFile(testFile), output, p => progress = p);
-        await Assert.That(progress).IsEqualTo(1);
+        var p = new ProgressProvider();
+        FileUtils.ExtractToDirectory(GetTestFile(testFile), output, p: p);
+        await Assert.That(p.IsFinished).IsTrue();
         await Assert.That(DirectoryUtils.Exists(Path.Combine(output, "文件夹"))).IsTrue();
         await Assert.That(DirectoryUtils.Exists(Path.Combine(output, "空文件夹"))).IsFalse();
         await Assert.That(File.ReadAllText(PathUtils.ToExtendedFormat(Path.Combine(output, "fabricloader.log")))).Contains("FabricLoader");
@@ -20,10 +20,10 @@ public class FileUtilsTest : TestWithFolder {
     [Test]
     [Arguments("GZ.gz", "LTCat")]
     public async Task 解压_ReadGz(string testFile, string containsText) {
-        double progress = 0;
         string output = Path.Combine(tempFolder, "Extracted");
-        FileUtils.ExtractToDirectory(GetTestFile(testFile), output, p => progress = p);
-        await Assert.That(progress).IsEqualTo(1);
+        var p = new ProgressProvider();
+        FileUtils.ExtractToDirectory(GetTestFile(testFile), output, p: p);
+        await Assert.That(p.IsFinished).IsTrue();
         await Assert.That(File.ReadAllText(PathUtils.ToExtendedFormat(Path.Combine(output, PathUtils.GetFileNameWithoutExtension(testFile))))).Contains(containsText);
     }
 
