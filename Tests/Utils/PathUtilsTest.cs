@@ -1,6 +1,40 @@
 namespace MeloongCore.Tests;
 public class PathUtilsTests : TestBase {
 
+    #region 长路径
+
+    [Test]
+    public async Task 长路径_ToShortPath_输出超过260字符() {
+        string root = Path.Combine(Path.GetTempPath(), $"{nameof(PathUtilsTests)}-{Guid.NewGuid():N}");
+        string path = root;
+        for (int i = 0; i < 40; i++) path = Path.Combine(path, $"D{i:000000}");
+        try {
+            DirectoryUtils.Create(path);
+            string result = PathUtils.ToShortPath(path);
+            await Assert.That(result.Length > 260).IsTrue();
+            await Assert.That(DirectoryUtils.Exists(result)).IsTrue();
+        } finally {
+            DirectoryUtils.Delete(root);
+        }
+    }
+
+    [Test]
+    public async Task 长路径_ToShortPath_创建短文件名() {
+        string root = Path.Combine(Path.GetTempPath(), $"{nameof(PathUtilsTests)}-{Guid.NewGuid():N}");
+        string path = Path.Combine(root, new string('A', 220), "versions", "test");
+        try {
+            DirectoryUtils.Create(path);
+            string result = PathUtils.ToShortPath(path);
+            await Assert.That(result.Length <= 200).IsTrue();
+            await Assert.That(result.Length < path.Length).IsTrue();
+            await Assert.That(DirectoryUtils.Exists(result)).IsTrue();
+        } finally {
+            DirectoryUtils.Delete(root);
+        }
+    }
+
+    #endregion
+
     #region 路径处理
 
     [Test]

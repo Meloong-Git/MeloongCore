@@ -23,18 +23,22 @@ public static class PathUtils {
     /// 若路径较长，则尽量将其转换为短路径。
     /// <para/>结果的开头不含 <c>\\?\</c>，结尾不含分隔符。
     /// </summary>
-    public static string ToShortPath(string pathName, bool keepFileName = false) {
+    public static string ToShortPath(string pathName) {
         if (string.IsNullOrEmpty(pathName)) return pathName;
         if (!pathName.Contains(":")) return pathName;
-        if (pathName.Length <= 200) return pathName;
+        if (pathName.Length <= 220) return pathName; // 快速返回
         pathName = PathUtils.ForCompare(pathName);
-        // 保留文件名
+        // 尽量保留原始文件名
         string pathToKeep = "";
         string pathToShorten = pathName;
-        if (pathName.EndsWithF(".jar", true)) keepFileName = true; // jar 文件的文件名需要保留原样，否则会导致 Forge 1.20.1 无法通过文件名识别模块名
-        if (keepFileName && FileUtils.Exists(pathName)) {
-            pathToKeep = PathUtils.GetLastPart(pathName);
-            pathToShorten = PathUtils.RemoveLastPart(pathName);
+        if (FileUtils.Exists(pathName)) {
+            var fileName = PathUtils.GetLastPart(pathName);
+            if (fileName.Length >= 180) {
+                Logger.Warn($"文件名过长，将为文件名生成短路径：{pathName}", LogBehavior.None); // 部分程序，例如 Forge 的模块加载，依赖于读取文件名进行判断，因此对文件名生成短路径是有风险的
+            } else {
+                pathToKeep = fileName;
+                pathToShorten = PathUtils.RemoveLastPart(pathName);
+            }
         }
         // 逐级向上寻找已存在的文件夹，将不存在的部分挪到 suffix，不再缩短
         while (!DirectoryUtils.Exists(pathToShorten) && !FileUtils.Exists(pathToShorten)) { // 如果路径不存在
@@ -43,16 +47,70 @@ public static class PathUtils {
             pathToKeep = Path.Combine(PathUtils.GetLastPart(pathToShorten), pathToKeep);
             pathToShorten = parentPath;
         }
-        if (pathToShorten.Length <= 10) return pathName;
-        // 实际缩短路径
-        char[] buffer = new char[260];
-        int result = GetShortPathNameW(PathUtils.ForApi(pathToShorten), buffer, buffer.Length);
-        if (result == 0) return pathName;
-        string shortPath = new(buffer, 0, result);
+        if (pathToKeep.Length >= 200) {
+            Logger.Warn($"路径中的大部分内容都尚未建立，无法在内容不存在时缩短路径：{pathName} → {pathToShorten}", LogBehavior.None);
+            return pathName;
+        }
+        // 获取短路径
+        Func<string, string> TryGetShortPath = static pathName => {
+            char[] buffer = new char[220];
+            int result = GetShortPathNameW(PathUtils.ForApi(pathName), buffer, buffer.Length);
+            return result is 0 or > 220 ? pathName : new string(buffer, 0, result);
+        };
+        var shortPath = TryGetShortPath(pathToShorten);
+        // 尝试生成新的短名称，以将长度降低到 220 以下（只会在 Windows 没有为其生成过短名称的情况下才会触发，大多数情况都不会进到这里）
+        if (Path.Combine(shortPath, pathToKeep).Length > 220) {
+            Logger.Warn($"{nameof(GetShortPathNameW)} 未能有效缩短路径，将尝试生成新的短名称：{pathToShorten} → {shortPath}", LogBehavior.None);
+            var candidates = new List<(string Path, string Name)>();
+            string? candidatePath = pathToShorten;
+            while (!string.IsNullOrEmpty(candidatePath)) {
+                string candidateName = PathUtils.GetLastPart(candidatePath);
+                if (candidateName.Length > 12 &&
+                    string.Equals(PathUtils.GetLastPart(TryGetShortPath(candidatePath)), candidateName, StringComparison.OrdinalIgnoreCase)) {
+                    candidates.Add((candidatePath, candidateName));
+                }
+                candidatePath = Path.GetDirectoryName(candidatePath);
+            }
+            foreach (var candidate in candidates.OrderByDescending(candidate => candidate.Name.Length)) {
+                using var handle = CreateFileW(PathUtils.ForApi(candidate.Path), 0x40010000, 7, IntPtr.Zero, 3, 0x02000000, IntPtr.Zero); // GENERIC_WRITE | DELETE；共享读、写、删除；OPEN_EXISTING；FILE_FLAG_BACKUP_SEMANTICS
+                if (handle.IsInvalid) continue;
+                bool created = false;
+                try {
+                    unsafe {
+                        fixed (char* originalNameBuffer = candidate.Name) {
+                            char* shortNameBuffer = stackalloc char[12]; // 8.3 名称最长 12 个 Unicode 字符
+                            var name = new UnicodeString {Length = (ushort)(candidate.Name.Length * 2), MaximumLength = (ushort)((candidate.Name.Length + 1) * 2), Buffer = originalNameBuffer};
+                            var shortName = new UnicodeString {MaximumLength = 24, Buffer = shortNameBuffer};
+                            var context = new GenerateNameContext();
+                            for (int i = 0; i < 20; i++) { // 使用 Windows 自身的 8.3 名称生成算法，并通过 context 依次生成避让冲突的候选名
+                                shortName.Length = 0;
+                                if (RtlGenerate8dot3Name(ref name, 0, ref context, ref shortName) != 0) break;
+                                string generatedName = new(shortName.Buffer, 0, shortName.Length / 2);
+                                if (SetFileShortNameW(handle, generatedName)) { created = true; break; }
+                                if (Marshal.GetLastWin32Error() != 183) break; // ERROR_ALREADY_EXISTS
+                            }
+                        }
+                    }
+                } catch (EntryPointNotFoundException) {}
+                if (!created) continue;
+                shortPath = TryGetShortPath(pathToShorten);
+                if (Path.Combine(shortPath, pathToKeep).Length <= 220) break;
+            }
+        }
         return PathUtils.RemoveSlashSuffix(PathUtils.RemoveExtendedPrefix(Path.Combine(shortPath, pathToKeep)));
     }
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-    private static extern int GetShortPathNameW(string lpszLongPath, [Out] char[] buffer, int cchBuffer);
+    [StructLayout(LayoutKind.Sequential)]
+    private unsafe struct UnicodeString { public ushort Length, MaximumLength; public char* Buffer; }
+    [StructLayout(LayoutKind.Sequential)]
+    private unsafe struct GenerateNameContext { public ushort Checksum; public byte ChecksumInserted, NameLength; public fixed char NameBuffer[8]; public uint ExtensionLength; public fixed char ExtensionBuffer[4]; public uint LastIndexValue; }
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] 
+    private static extern int GetShortPathNameW(string lpszLongPath, [Out] char[]? buffer, int cchBuffer);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] 
+    private static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFileW(string fileName, uint desiredAccess, uint shareMode, IntPtr securityAttributes, uint creationDisposition, uint flagsAndAttributes, IntPtr templateFile);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] 
+    private static extern bool SetFileShortNameW(Microsoft.Win32.SafeHandles.SafeFileHandle file, string shortName);
+    [DllImport("ntdll.dll")] 
+    private static extern int RtlGenerate8dot3Name(ref UnicodeString name, byte allowExtendedCharacters, ref GenerateNameContext context, ref UnicodeString name8dot3);
 
     /// <summary>
     /// 将完整路径转换为以 <c>\\?\</c> 开头的扩展格式。
