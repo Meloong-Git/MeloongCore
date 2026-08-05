@@ -24,6 +24,9 @@ public static class EnumUtils {
         }
     }
 
+    public static bool HasFlagF<T>(this T value, T flag) where T : struct, Enum
+        => value.HasFlag(flag) && !EqualityComparer<T>.Default.Equals(flag, default);
+
     /// <summary>
     /// 对于具有 <see cref="FlagsAttribute"/> 的枚举，返回其所有 Flag 值。
     /// 建议仅对没有极端值的正数枚举使用。
