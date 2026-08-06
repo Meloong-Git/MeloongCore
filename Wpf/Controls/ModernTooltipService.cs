@@ -142,17 +142,7 @@ public static class ModernTooltipService {
 
     private static void OnPreviewMouseUp(object sender, MouseButtonEventArgs e) {
         if (sender is not FrameworkElement reference) return;
-
-        reference.Dispatcher.BeginInvoke(new Action(() => {
-            if (currentOwner is null) return;
-
-            var owner = FindCurrentTooltipOwner(reference);
-            if (owner is null) {
-                Close(true);
-            } else {
-                BeginShow(owner, Mouse.GetPosition(owner));
-            }
-        }), DispatcherPriority.Input);
+        reference.Dispatcher.BeginInvoke(new Action(() => RefreshCurrentOwner(reference)), DispatcherPriority.Input);
     }
 
     private static void OnToolTipOpening(object sender, ToolTipEventArgs e) {
@@ -315,7 +305,8 @@ public static class ModernTooltipService {
 
     private static void Show(FrameworkElement owner, Point point) {
         if (!ReferenceEquals(owner, currentOwner) || !CanShowModernTooltip(owner) || !TryGetToolTip(owner, out var content, out var sourceToolTip)) return;
-        if (!ReferenceEquals(owner, FindCurrentTooltipOwner(owner))) {
+        // 禁用控件由原生 ToolTipOpening 确认命中，无法通过常规 InputHitTest 可靠地重新定位。
+        if (owner.IsEnabled && !ReferenceEquals(owner, FindCurrentTooltipOwner(owner))) {
             Close(false);
             return;
         }
