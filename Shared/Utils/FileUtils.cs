@@ -100,7 +100,6 @@ public static class FileUtils {
         DirectoryUtils.Create(PathUtils.RemoveLastPart(filePath));
         Logger.Trace($"写入文件：{filePath}（{content.Length} 字节）");
         Retrier.Attempt(delay: _ => TimeSpan.FromMilliseconds(200), isRetryAllowed: ex => ex is IOException, action: _ => {
-            FileUtils.Delete(filePath);
             File.WriteAllBytes(PathUtils.ForApi(filePath), content);
         });
     }
