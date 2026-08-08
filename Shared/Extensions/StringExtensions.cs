@@ -38,13 +38,6 @@ public static class StringExtensions {
         => value.IndexOf(subString, StringComparison.OrdinalIgnoreCase) >= 0;
 
     /// <summary>
-    /// 非区域性的 <see cref="string.Contains(string)"/>。
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool ContainsF(this string? value, string subString, bool ignoreCase = false)
-        => value?.IndexOf(subString, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) >= 0;
-
-    /// <summary>
     /// 非区域性的 <see cref="string.IndexOf(string)"/>。
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
