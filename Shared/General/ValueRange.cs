@@ -200,12 +200,12 @@ public sealed class ValueRange<T>(
     }
     public override int GetHashCode() {
         int hashCode = 169504101;
-        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(lower);
-        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(upper);
-        hashCode=hashCode*-1521134295+hasLower.GetHashCode();
-        hashCode=hashCode*-1521134295+hasUpper.GetHashCode();
-        hashCode=hashCode*-1521134295+isLowerInclusive.GetHashCode();
-        hashCode=hashCode*-1521134295+isUpperInclusive.GetHashCode();
+        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(Lower);
+        hashCode=hashCode*-1521134295+EqualityComparer<T?>.Default.GetHashCode(Upper);
+        hashCode=hashCode*-1521134295+HasLower.GetHashCode();
+        hashCode=hashCode*-1521134295+HasUpper.GetHashCode();
+        hashCode=hashCode*-1521134295+IsLowerInclusive.GetHashCode();
+        hashCode=hashCode*-1521134295+IsUpperInclusive.GetHashCode();
         return hashCode;
     }
 #pragma warning disable CS8604 // 引用类型参数可能为 null。
