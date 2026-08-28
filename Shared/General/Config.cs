@@ -112,7 +112,7 @@ public class JsonConfigProvider : IConfigProvider {
     public void Save() {
         if (!isDirty) return;
         isDirty = false;
-        lock (this) FileUtils.Write(filePath, json.Value.ToString(Formatting.Indented));
+        lock (this) FileUtils.WriteAtomic(filePath, json.Value.ToString(Formatting.Indented));
     }
 }
 

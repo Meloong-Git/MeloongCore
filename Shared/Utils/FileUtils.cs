@@ -105,6 +105,30 @@ public static class FileUtils {
     }
 
     /// <summary>
+    /// 原子写入文件。成功时目标文件完整切换为新内容，失败时已有目标文件保持不变。
+    /// 不提供并发写入合并保证。
+    /// </summary>
+    public static void WriteAtomic(string filePath, string text, Encoding? encoding = null) =>
+        FileUtils.WriteAtomic(filePath, (encoding ?? new UTF8Encoding()).GetBytes(text));
+    /// <summary>
+    /// 原子写入文件。成功时目标文件完整切换为新内容，失败时已有目标文件保持不变。
+    /// 不提供并发写入合并保证。
+    /// </summary>
+    public static void WriteAtomic(string filePath, byte[] content) {
+        string tempPath = $"{filePath}.{Guid.NewGuid():N}.tmp";
+        try {
+            FileUtils.Write(tempPath, content);
+            if (FileUtils.Exists(filePath)) {
+                File.Replace(PathUtils.ForApi(tempPath), PathUtils.ForApi(filePath), null, true);
+            } else {
+                File.Move(PathUtils.ForApi(tempPath), PathUtils.ForApi(filePath));
+            }
+        } finally {
+            FileUtils.Delete(tempPath);
+        }
+    }
+
+    /// <summary>
     /// 创建文件，并将 <paramref name="stream" /> 写入文件。
     /// 会将流的位置主动重置到开头。
     /// 若文件已存在，则会覆盖原文件。

@@ -89,6 +89,22 @@ public class ConfigTest : TestWithFolder {
         await Assert.That(FileUtils.ReadAsString(configFile)).Contains("\"text\": \"pending 中文\"");
     }
 
+    [Test]
+    public async Task JsonConfigProvider_Save_原子替换且不残留临时文件() {
+        string configFile = Path.Combine(tempFolder, "config.json");
+        FileUtils.Write(configFile, "{\"existing\":true}");
+        var provider = new JsonConfigProvider(configFile);
+        var entry = new ConfigEntry<string>("text", "", provider: provider);
+
+        entry.Set("updated");
+        provider.Save();
+
+        Newtonsoft.Json.Linq.JObject config = FileUtils.ReadAsJson<Newtonsoft.Json.Linq.JObject>(configFile)!;
+        await Assert.That(config.Value<bool>("existing")).IsTrue();
+        await Assert.That(config.Value<string>("text")).IsEqualTo("updated");
+        await Assert.That(DirectoryUtils.EnumerateFiles(tempFolder, searchPattern: "config.json.*.tmp")).IsEmpty();
+    }
+
     public class TestConfigItem {
         public string Name { get; set; } = "";
         public int Count { get; set; }
