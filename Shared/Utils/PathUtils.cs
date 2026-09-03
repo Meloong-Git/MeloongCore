@@ -24,9 +24,11 @@ public static class PathUtils {
     /// <para/>结果的开头不含 <c>\\?\</c>，结尾不含分隔符。
     /// </summary>
     public static string ToShortPath(string pathName) {
+        // 快速返回
         if (string.IsNullOrEmpty(pathName)) return pathName;
-        if (!pathName.Contains(":")) return pathName;
-        if (pathName.Length <= 220) return pathName; // 快速返回
+        if (!pathName.Contains(":") || pathName.Contains("://")) return pathName;
+        if (pathName.Length <= 220) return pathName;
+        // 开始实际处理
         pathName = PathUtils.ForCompare(pathName);
         // 尽量保留原始文件名
         string pathToKeep = "";
