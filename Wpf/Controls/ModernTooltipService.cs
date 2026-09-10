@@ -57,6 +57,7 @@ public static class ModernTooltipService {
     // 常量
     private const double closedScale = 0.97;
     private const int shadowRadius = 18, contentMaxWidth = 676;
+    private const int wmNcHitTest = 0x0084, htTransparent = -1;
     private static readonly Thickness contentMargin = new(12, 11, 12, 8);
     private static readonly Brush backgroundBrush = new SolidColorBrush(Colors.White);
     private static readonly Brush borderBrush = new SolidColorBrush(Color.FromRgb(0xD6, 0xD6, 0xD6));
@@ -72,6 +73,7 @@ public static class ModernTooltipService {
     private static Popup? popup;
     private static Border? popupCard;
     private static ScaleTransform? popupScale;
+    private static System.Windows.Interop.HwndSource? popupSource;
     private static FrameworkElement? currentOwner;
     private static FrameworkElement? observedToolTipOwner;
     private static ToolTip? borrowedToolTip;
@@ -103,9 +105,8 @@ public static class ModernTooltipService {
         if (Mouse.LeftButton == MouseButtonState.Pressed) {
             if (currentOwner is FrameworkElement pressedOwner) {
                 lastMousePoint = Mouse.GetPosition(pressedOwner);
-                if (GetFollowMouse(pressedOwner) && popup is { IsOpen: true }) {
-                    UpdatePosition(pressedOwner, lastMousePoint);
-                }
+                if (!IsPointInside(pressedOwner, lastMousePoint)) Close(false);
+                else if (GetFollowMouse(pressedOwner) && popup is { IsOpen: true }) UpdatePosition(pressedOwner, lastMousePoint);
             } else if (popup is { IsOpen: true, PlacementTarget: FrameworkElement popupOwner } && GetFollowMouse(popupOwner)) {
                 lastMousePoint = Mouse.GetPosition(popupOwner);
                 UpdatePosition(popupOwner, lastMousePoint);
@@ -127,9 +128,7 @@ public static class ModernTooltipService {
     }
 
     private static void OnMouseLeave(object sender, MouseEventArgs e) {
-        if (sender is not FrameworkElement owner || !ReferenceEquals(owner, currentOwner)) return;
-
-        if (!(owner.IsEnabled || !ToolTipService.GetShowOnDisabled(owner) || !IsPointInside(owner, Mouse.GetPosition(owner)))) return;
+        if (currentOwner is not FrameworkElement owner || IsPointInside(owner, Mouse.GetPosition(owner))) return;
 
         var nextOwner = FindCurrentTooltipOwner(owner);
         if (nextOwner is not null && !ReferenceEquals(nextOwner, owner)) {
@@ -327,6 +326,16 @@ public static class ModernTooltipService {
                 AllowsTransparency = true, IsHitTestVisible = false, StaysOpen = true, PopupAnimation = PopupAnimation.None,
                 Placement = PlacementMode.Relative, Child = root
             };
+            // Popup 会拦截鼠标消息，Hook 下让命中测试穿透到下层。
+            popup.Opened += (_, _) => {
+                if (PresentationSource.FromVisual(root) is not System.Windows.Interop.HwndSource source) return;
+                popupSource = source;
+                popupSource.AddHook(OnPopupMessage);
+            };
+            popup.Closed += (_, _) => {
+                popupSource?.RemoveHook(OnPopupMessage);
+                popupSource = null;
+            };
         }
 
         popup.PlacementTarget = owner;
@@ -438,6 +447,12 @@ public static class ModernTooltipService {
     #endregion
 
     #region Popup 渲染与动画
+
+    private static IntPtr OnPopupMessage(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled) {
+        if (message != wmNcHitTest) return IntPtr.Zero;
+        handled = true;
+        return new(htTransparent);
+    }
 
     private static void UpdatePosition(FrameworkElement owner, Point point) {
         popup!.PlacementTarget = owner;
