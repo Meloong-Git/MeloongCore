@@ -105,6 +105,64 @@ public class ConfigTest : TestWithFolder {
         await Assert.That(DirectoryUtils.EnumerateFiles(tempFolder, searchPattern: "config.json.*.tmp")).IsEmpty();
     }
 
+    [Test]
+    public async Task JsonConfigProvider_Save_等待正在进行的保存() {
+        string configFile = Path.Combine(tempFolder, "config.json");
+        var provider = new JsonConfigProvider(configFile);
+        var entry = new ConfigEntry<string>("text", "", provider: provider);
+        using var firstStarted = new ManualResetEventSlim(false);
+        using var secondStarted = new ManualResetEventSlim(false);
+        Task firstSave, secondSave;
+        bool firstBlocked, secondRunning, returnedEarly;
+
+        lock (provider) {
+            entry.Set("pending");
+            Thread? firstThread = null;
+            firstSave = Task.Factory.StartNew(() => {
+                firstThread = Thread.CurrentThread;
+                firstStarted.Set();
+                provider.Save();
+            }, TaskCreationOptions.LongRunning);
+            // 阻止首次保存写盘，稳定复现第二次 Save 在写盘完成前返回的窗口。
+            firstBlocked = firstStarted.Wait(3000) && SpinWait.SpinUntil(
+                () => (firstThread!.ThreadState & ThreadState.WaitSleepJoin) != 0, 3000);
+            secondSave = Task.Factory.StartNew(() => {
+                secondStarted.Set();
+                provider.Save();
+            }, TaskCreationOptions.LongRunning);
+            secondRunning = secondStarted.Wait(3000);
+            returnedEarly = secondSave.Wait(200);
+        }
+        await Task.WhenAll(firstSave, secondSave);
+
+        await Assert.That(firstBlocked).IsTrue();
+        await Assert.That(secondRunning).IsTrue();
+        await Assert.That(returnedEarly).IsFalse();
+        var reloadedEntry = new ConfigEntry<string>("text", "", provider: new JsonConfigProvider(configFile));
+        await Assert.That(reloadedEntry.Get()).IsEqualTo("pending");
+    }
+
+    [Test]
+    public async Task JsonConfigProvider_Save_写入失败后可直接重试() {
+        string configFile = Path.Combine(tempFolder, "config.json");
+        var provider = new JsonConfigProvider(configFile);
+        var entry = new ConfigEntry<string>("text", "", provider: provider);
+        entry.Set("before");
+        provider.Save();
+
+        lock (provider) {
+            entry.Set("after");
+            using (var stream = new FileStream(PathUtils.ForApi(configFile), FileMode.Open, FileAccess.Read, FileShare.None)) {
+                Assert.Throws<IOException>(() => provider.Save());
+            }
+            // 无需再次 Set，失败的内容仍应处于待保存状态。
+            provider.Save();
+        }
+
+        var reloadedEntry = new ConfigEntry<string>("text", "", provider: new JsonConfigProvider(configFile));
+        await Assert.That(reloadedEntry.Get()).IsEqualTo("after");
+    }
+
     public class TestConfigItem {
         public string Name { get; set; } = "";
         public int Count { get; set; }

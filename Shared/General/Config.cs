@@ -106,13 +106,16 @@ public class JsonConfigProvider : IConfigProvider {
     private readonly RateLimitedWorker saveWorker;
     private bool isDirty = false;
     public void MakeDirty() {
-        isDirty = true;
+        lock (this) isDirty = true;
         saveWorker.Start();
     }
+    /// <summary>同步保存配置，并等待同一实例正在进行的保存完成；保存失败时保留待保存状态。</summary>
     public void Save() {
-        if (!isDirty) return;
-        isDirty = false;
-        lock (this) FileUtils.WriteAtomic(filePath, json.Value.ToString(Formatting.Indented));
+        lock (this) {
+            if (!isDirty) return;
+            FileUtils.WriteAtomic(filePath, json.Value.ToString(Formatting.Indented));
+            isDirty = false;
+        }
     }
 }
 
