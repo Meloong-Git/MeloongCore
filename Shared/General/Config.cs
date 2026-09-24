@@ -229,16 +229,21 @@ public static class ConfigUtils {
     private static readonly Lazy<JObject> secret = new(() => {
         string filePath = Path.Combine(Paths.AppData, "Meloong", "Dev", "secret.json");
         try {
-            return FileUtils.Exists(filePath)
-                ? JObject.Parse(CryptographyUtils.AesDecrypt(FileUtils.ReadAsString(filePath))!) : [];
+            return FileUtils.Exists(filePath) ? JObject.Parse(FileUtils.ReadAsString(filePath)) : [];
         } catch {
-            // 解密及 JSON 异常可能包含凭据内容，不保留原始异常，也不回退空配置。
+            // JSON 异常可能包含凭据内容，不保留原始异常，也不回退空配置。
             throw new InvalidDataException($"读取密钥文件失败（{filePath}），请检查文件内容与加密格式。");
         }
     });
 
-    /// <summary>从加密的 secret.json 中读取特定密钥，首次读取后缓存；如果未找到对应密钥则抛出异常。</summary>
-    public static string GetSecret(string key)
-        => secret.Value.Value<string>(key) ?? throw new KeyNotFoundException($"未找到密钥：{key}");
+    /// <summary>从 secret.json 中读取加密的密钥；如果未找到对应密钥则抛出异常。</summary>
+    public static string GetSecret(string key) {
+        string value = secret.Value.Value<string>(key) ?? throw new KeyNotFoundException($"未找到密钥：{key}");
+        try {
+            return CryptographyUtils.AesDecrypt(value)!;
+        } catch {
+            throw new InvalidDataException($"读取密钥失败（{key}），请检查文件内容与加密格式。");
+        }
+    }
 
 }
