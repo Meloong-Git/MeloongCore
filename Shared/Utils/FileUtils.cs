@@ -205,8 +205,9 @@ public static class FileUtils {
     /// <summary>
     /// 剪切文件。
     /// 会创建对应文件夹、覆盖已有的文件。
+    /// 若指定了 <paramref name="toRecycleBin"/>，则在覆盖前将老文件删除到回收站。
     /// </summary>
-    public static void Move(string sourceFilePath, string destFilePath) {
+    public static void Move(string sourceFilePath, string destFilePath, bool toRecycleBin = false) {
         sourceFilePath = PathUtils.ForCompare(sourceFilePath);
         destFilePath = PathUtils.ForCompare(destFilePath);
         if (string.CompareOrdinal(sourceFilePath, destFilePath) == 0) {
@@ -225,7 +226,7 @@ public static class FileUtils {
         } else {
             // 实际的剪切
             DirectoryUtils.Create(PathUtils.RemoveLastPart(destFilePath));
-            FileUtils.Delete(destFilePath);
+            FileUtils.Delete(destFilePath, toRecycleBin);
             Logger.Trace($"剪切文件：{sourceFilePath} → {destFilePath}");
             Retrier.Attempt(delay: _ => TimeSpan.FromMilliseconds(200), isRetryAllowed: ex => ex is IOException, action: _ => {
                 FileUtils.SetReadOnly(sourceFilePath, false);
@@ -510,7 +511,8 @@ public class FileChecker {
     /// 是否要求为 JSON 文件。
     /// </summary>
     public bool IsJson = false;
-
+    
+    // TODO: 重构此函数，使它变成 void，并抛出异常
     /// <summary>
     /// 检查文件。
     /// <para/>若成功则返回 <c>null</c>，失败则返回错误的描述文本（文本不以句号结尾）。
