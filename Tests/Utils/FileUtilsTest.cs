@@ -1,6 +1,39 @@
 namespace MeloongCore.Tests;
 public class FileUtilsTest : TestWithFolder {
 
+    [Test]
+    public async Task 文件可用性_只读与占用() {
+        string path = Path.Combine(tempFolder, "available.txt");
+        await Assert.That(FileUtils.IsAvailable(path)).IsTrue();
+        FileUtils.Write(path, "test");
+        string apiPath = PathUtils.ForApi(path);
+        File.SetAttributes(apiPath, FileAttributes.ReadOnly);
+        try {
+            await Assert.That(FileUtils.IsAvailable(path)).IsTrue();
+            await Assert.That((File.GetAttributes(apiPath) & FileAttributes.ReadOnly) != 0).IsTrue();
+        } finally {
+            File.SetAttributes(apiPath, FileAttributes.Normal);
+        }
+        using (var stream = new FileStream(apiPath, FileMode.Open, FileAccess.Read, FileShare.None)) {
+            await Assert.That(FileUtils.IsAvailable(path)).IsFalse();
+        }
+        await Assert.That(FileUtils.IsAvailable(path)).IsTrue();
+    }
+
+    [Test]
+    public async Task 文件可用性_短暂占用后重试() {
+        string path = Path.Combine(tempFolder, "temporary-lock.txt");
+        FileUtils.Write(path, "test");
+        using var stream = new FileStream(PathUtils.ForApi(path), FileMode.Open, FileAccess.Read, FileShare.None);
+        var release = Task.Run(async () => {
+            await Task.Delay(100);
+            stream.Dispose();
+        });
+        bool available = FileUtils.IsAvailable(path);
+        await release;
+        await Assert.That(available).IsTrue();
+    }
+
     #region 解压
 
     [Test]

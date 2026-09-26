@@ -462,6 +462,22 @@ public static class FileUtils {
         => File.Exists(PathUtils.ForApi(filePath));
 
     /// <summary>
+    /// 检查文件是否未被其他进程占用
+    /// <para>被占用或无权读取时返回 <see langword="false"/>。</para>
+    /// </summary>
+    public static bool IsAvailable(string filePath) {
+        if (!Exists(filePath)) return true;
+        try {
+            Retrier.Attempt(maxAttempts: 3, delay: _ => TimeSpan.FromMilliseconds(200), isRetryAllowed: ex => ex is IOException, action: _ => {
+                using var stream = new FileStream(PathUtils.ForApi(filePath), FileMode.Open, FileAccess.Read, FileShare.None);
+            });
+            return true;
+        } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 获取 <see cref="FileInfo"/> 对象。
     /// </summary>
     public static FileInfo GetInfo(string path) 
