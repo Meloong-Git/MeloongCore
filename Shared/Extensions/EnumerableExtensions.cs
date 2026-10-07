@@ -1,6 +1,23 @@
 namespace MeloongCore.Extensions;
 public static class EnumerableExtensions {
 
+    #region 查找
+
+    /// <summary>
+    /// 按优先级依次查找，返回首个有匹配结果的条件所匹配的第一个元素。
+    /// 所有条件均无匹配时返回 default。每尝试一个条件都会重新枚举序列。
+    /// </summary>
+    public static TSource? FirstOrDefault<TSource>(this IEnumerable<TSource> source, params Func<TSource, bool>[] predicates) {
+        foreach (var predicate in predicates) {
+            foreach (var item in source) {
+                if (predicate(item)) return item;
+            }
+        }
+        return default;
+    }
+
+    #endregion
+
     #region 去重
 
     /// <summary>
