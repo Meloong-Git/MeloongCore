@@ -45,7 +45,7 @@ public static class PathUtils {
         // 逐级向上寻找已存在的文件夹，将不存在的部分挪到 suffix，不再缩短
         while (!DirectoryUtils.Exists(pathToShorten) && !FileUtils.Exists(pathToShorten)) { // 如果路径不存在
             string? parentPath = Path.GetDirectoryName(pathToShorten);
-            if (string.IsNullOrEmpty(parentPath) || parentPath == pathToShorten) return pathName; // 已经到达根目录，全都不存在，直接返回
+            if (string.IsNullOrEmpty(parentPath) || PathUtils.IsSame(parentPath, pathToShorten)) return pathName; // 已经到达根目录，全都不存在，直接返回
             pathToKeep = Path.Combine(PathUtils.GetLastPart(pathToShorten), pathToKeep);
             pathToShorten = parentPath;
         }
@@ -226,21 +226,24 @@ public static class PathUtils {
     }
 
     /// <summary>
-    /// 比较两个路径是否相同。
+    /// 比较两个路径是否相同。<c>null</c> 与空字符串视为相同的空路径。
     /// </summary>
-    public static bool IsSame(string path1, string path2) {
-        return PathUtils.Compare(PathUtils.ForCompare(path1), PathUtils.ForCompare(path2)) == 0;
+    public static bool IsSame(string? path1, string? path2) {
+        return PathUtils.Compare(path1, path2) == 0;
     }
     /// <summary>
     /// 比较两个路径，忽略大小写。
+    /// <para/><c>null</c> 与空字符串视为相同的空路径，空路径排在非空路径之前。
     /// </summary>
     /// <returns>
     /// 小于 0：<paramref name="path1"/> 排在 <paramref name="path2"/> 之前。
     /// <para/>等于 0：两个路径相等。
     /// <para/>大于 0：<paramref name="path1"/> 排在 <paramref name="path2"/> 之后。
     /// </returns>
-    public static int Compare(string path1, string path2) {
-        return string.Compare(PathUtils.ForCompare(path1), PathUtils.ForCompare(path2), true);
+    public static int Compare(string? path1, string? path2) {
+        if (string.IsNullOrEmpty(path1)) return string.IsNullOrEmpty(path2) ? 0 : -1;
+        if (string.IsNullOrEmpty(path2)) return 1;
+        return string.Compare(PathUtils.ForCompare(path1!), PathUtils.ForCompare(path2!), true);
     }
 
     /// <summary>
@@ -262,7 +265,7 @@ public static class PathUtils {
     public static bool IsParentOf(string parentPath, string childPath) {
         parentPath = PathUtils.ForCompare(parentPath);
         childPath = PathUtils.ForCompare(childPath);
-        return childPath.StartsWithF(parentPath + @"\") || childPath == parentPath;
+        return childPath.StartsWithF(parentPath + @"\") || PathUtils.IsSame(childPath, parentPath);
     }
 
 }

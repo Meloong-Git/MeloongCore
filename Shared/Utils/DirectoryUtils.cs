@@ -71,7 +71,7 @@ public static class DirectoryUtils {
         if (string.CompareOrdinal(sourceFolder, destFolder) == 0) {
             // 复制自身到自身，则不执行操作
             Logger.Trace($"复制文件夹到自身，不执行操作：{sourceFolder} → {destFolder}");
-        } else if (string.Compare(sourceFolder, destFolder, StringComparison.OrdinalIgnoreCase) == 0) {
+        } else if (PathUtils.IsSame(sourceFolder, destFolder)) {
             // 路径仅大小写不同，等效于重命名
             Logger.Trace($"复制文件夹到自身，但大小写不同，等效于重命名文件夹：{sourceFolder} → {destFolder}");
             DirectoryUtils.Move(sourceFolder, destFolder);
@@ -93,7 +93,7 @@ public static class DirectoryUtils {
         if (string.CompareOrdinal(sourceFolder, destFolder) == 0) {
             // 剪切自身到自身，则不执行操作
             Logger.Trace($"剪切文件夹到自身，不执行操作：{sourceFolder} → {destFolder}");
-        } else if (string.Compare(sourceFolder, destFolder, StringComparison.OrdinalIgnoreCase) == 0) {
+        } else if (PathUtils.IsSame(sourceFolder, destFolder)) {
             // 路径仅大小写不同
             Logger.Trace($"剪切文件夹到自身，但大小写不同：{sourceFolder} → {destFolder}");
             var temp = Path.Combine(PathUtils.RemoveLastPart(sourceFolder), Path.GetRandomFileName());
@@ -167,7 +167,7 @@ public static class DirectoryUtils {
     /// <exception cref="UnauthorizedAccessException" />
     private static void SafetyCheck(string folder) {
         folder = PathUtils.ForCompare(folder);
-        if (folder == PathUtils.ForCompare(Path.GetPathRoot(folder)))
+        if (PathUtils.IsSame(folder, Path.GetPathRoot(folder)))
             throw new UnauthorizedAccessException($"不应操作磁盘根目录：{folder}");
         if (criticalFolders.Value.Any(f => PathUtils.IsParentOf(folder, f)))
             throw new UnauthorizedAccessException($"不应操作文件夹：{folder}");
