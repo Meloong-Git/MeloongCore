@@ -384,7 +384,7 @@ public static class FileUtils {
         compressionFile = PathUtils.ForApi(compressionFile);
         DirectoryUtils.Create(outputDirectory);
         // 解压 gz（gz 不需要考虑编码）
-        if (compressionFile.EndsWithF(".gz", true)) {
+        if (PathUtils.GetExtension(compressionFile) == "gz") {
             string outFilePath = Path.Combine(outputDirectory, PathUtils.GetFileNameWithoutExtension(compressionFile));
             Logger.Trace($"解压 gz 文件：{compressionFile} → {outFilePath}");
             using var fileStream = FileUtils.ReadAsStream(compressionFile);

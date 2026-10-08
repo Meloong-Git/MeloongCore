@@ -27,7 +27,7 @@ public static class Dialogs {
         Logger.Info($"保存弹窗返回：{result}");
         if (!result.Contains(Path.DirectorySeparatorChar)) return null;
         // AddExtension 可能失效，需要手动补全（#8214）
-        if (filters != null && !string.IsNullOrEmpty(result) && !filters.Any(f => result.EndsWithF("." + f.Extension))) {
+        if (filters != null && !string.IsNullOrEmpty(result) && !filters.Any(f => result.EndsWithF("." + f.Extension, true))) {
             result += "." + filters[dialog.FilterIndex - 1].Extension;
             Logger.Warn($"选择文件的返回无扩展名，将会手动添加，修改后为：{result}");
         }
