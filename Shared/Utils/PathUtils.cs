@@ -226,6 +226,24 @@ public static class PathUtils {
     }
 
     /// <summary>
+    /// 比较两个路径是否相同。
+    /// </summary>
+    public static bool IsSame(string path1, string path2) {
+        return PathUtils.Compare(PathUtils.ForCompare(path1), PathUtils.ForCompare(path2)) == 0;
+    }
+    /// <summary>
+    /// 比较两个路径，忽略大小写。
+    /// </summary>
+    /// <returns>
+    /// 小于 0：<paramref name="path1"/> 排在 <paramref name="path2"/> 之前。
+    /// <para/>等于 0：两个路径相等。
+    /// <para/>大于 0：<paramref name="path1"/> 排在 <paramref name="path2"/> 之后。
+    /// </returns>
+    public static int Compare(string path1, string path2) {
+        return string.Compare(PathUtils.ForCompare(path1), PathUtils.ForCompare(path2), true);
+    }
+
+    /// <summary>
     /// 将路径转换为兼容各种 Windows API 的格式。
     /// <para/>具体而言：将分隔符改为 \。添加前导的 <c>\\?\</c>。若为驱动器则添加末尾分隔符，否则去除分隔符。
     /// </summary>
