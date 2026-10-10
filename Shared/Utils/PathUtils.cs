@@ -232,7 +232,7 @@ public static class PathUtils {
         return PathUtils.Compare(path1, path2) == 0;
     }
     /// <summary>
-    /// 比较两个路径，忽略大小写。
+    /// 比较两个路径，忽略大小写，且不受当前语言设置影响。
     /// <para/><c>null</c> 与空字符串视为相同的空路径，空路径排在非空路径之前。
     /// </summary>
     /// <returns>
@@ -243,7 +243,7 @@ public static class PathUtils {
     public static int Compare(string? path1, string? path2) {
         if (string.IsNullOrEmpty(path1)) return string.IsNullOrEmpty(path2) ? 0 : -1;
         if (string.IsNullOrEmpty(path2)) return 1;
-        return string.Compare(PathUtils.ForCompare(path1!), PathUtils.ForCompare(path2!), true);
+        return string.Compare(PathUtils.ForCompare(path1!), PathUtils.ForCompare(path2!), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -265,7 +265,7 @@ public static class PathUtils {
     public static bool IsParentOf(string parentPath, string childPath) {
         parentPath = PathUtils.ForCompare(parentPath);
         childPath = PathUtils.ForCompare(childPath);
-        return childPath.StartsWithF(parentPath + @"\", true) || PathUtils.IsSame(childPath, parentPath);
+        return childPath.StartsWith(parentPath + @"\", StringComparison.OrdinalIgnoreCase) || PathUtils.IsSame(childPath, parentPath);
     }
 
 }

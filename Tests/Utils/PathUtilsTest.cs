@@ -38,6 +38,31 @@ public class PathUtilsTests : TestBase {
     #region 路径处理
 
     [Test]
+    [Arguments("en-US")]
+    [Arguments("zh-CN")]
+    [Arguments("tr-TR")]
+    public async Task 路径比较_不受当前语言影响(string cultureName) {
+        var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try {
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(cultureName);
+            await Assert.That(PathUtils.Compare(@"C:\FILES\FILE.jar", @"C:\files\file.jar")).IsEqualTo(0);
+            await Assert.That(PathUtils.IsSame(@"C:\FILES\FILE.jar", @"C:\files\file.jar")).IsTrue();
+            await Assert.That(PathUtils.IsSame(@"C:\files\I.jar", @"C:\files\ı.jar")).IsFalse();
+            await Assert.That(PathUtils.IsSame(@"C:\files\ab.jar", "C:\\files\\a\u00adb.jar")).IsFalse();
+            await Assert.That(PathUtils.Compare(@"C:\files\I.jar", @"C:\files\J.jar") < 0).IsTrue();
+            await Assert.That(PathUtils.IsParentOf(@"C:\FILES", @"C:\files\child")).IsTrue();
+            await Assert.That(PathUtils.IsParentOf(@"C:\FILES", @"C:\files")).IsTrue();
+            await Assert.That(PathUtils.IsParentOf(@"C:\FILES", @"C:\files-other\child")).IsFalse();
+            await Assert.That(PathUtils.IsParentOf(@"C:\I", @"C:\ı\child")).IsFalse();
+            await Assert.That(PathUtils.IsSame(null, "")).IsTrue();
+            await Assert.That(PathUtils.Compare("", @"C:\files") < 0).IsTrue();
+            await Assert.That(PathUtils.Compare(@"C:\files", null) > 0).IsTrue();
+        } finally {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Test]
     [Arguments(@"\\?\C:\foo\bar.txt", @"\\?\C:\foo")]
     [Arguments(@"C:\foo\extra/bar.txt", @"C:\foo\extra")]
     [Arguments(@"C:\foo/extra/bar.txt", @"C:\foo/extra")]

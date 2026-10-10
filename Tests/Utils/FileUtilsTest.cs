@@ -2,6 +2,33 @@ namespace MeloongCore.Tests;
 public class FileUtilsTest : TestWithFolder {
 
     [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task 土耳其语_文件同源及仅改大小写保留内容(bool copy) {
+        var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+        string root = tempFolder;
+        string source = Path.Combine(root, "FILE.txt");
+        string destination = Path.Combine(root, "file.txt");
+        try {
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+            DirectoryUtils.Create(root);
+            FileUtils.Write(source, "文件内容");
+            if (copy) {
+                FileUtils.Copy(source, source);
+                FileUtils.Copy(source, destination);
+            } else {
+                FileUtils.Move(source, source);
+                FileUtils.Move(source, destination);
+            }
+            await Assert.That(FileUtils.ReadAsString(destination)).IsEqualTo("文件内容");
+            await Assert.That(Directory.GetFiles(PathUtils.ForApi(root)).Select(Path.GetFileName).Single()).IsEqualTo("file.txt");
+        } finally {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+            DirectoryUtils.Delete(root);
+        }
+    }
+
+    [Test]
     public async Task 文件可用性_只读与占用() {
         string path = Path.Combine(tempFolder, "available.txt");
         await Assert.That(FileUtils.IsAvailable(path)).IsTrue();

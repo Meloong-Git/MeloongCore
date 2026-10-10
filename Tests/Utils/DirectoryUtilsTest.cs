@@ -1,6 +1,34 @@
 namespace MeloongCore.Tests;
 public class DirectoryUtilsTest : TestWithFolder {
 
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task 土耳其语_目录同源及仅改大小写保留内容(bool copy) {
+        var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+        string root = tempFolder;
+        string source = Path.Combine(root, "FILES");
+        string destination = Path.Combine(root, "files");
+        try {
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+            DirectoryUtils.Create(source);
+            FileUtils.Write(Path.Combine(source, "keep.txt"), "目录内容");
+            if (copy) {
+                DirectoryUtils.Copy(source, source);
+                DirectoryUtils.Copy(source, destination);
+            } else {
+                DirectoryUtils.Move(source, source);
+                DirectoryUtils.Move(source, destination);
+            }
+            await Assert.That(FileUtils.ReadAsString(Path.Combine(destination, "keep.txt"))).IsEqualTo("目录内容");
+            await Assert.That(Directory.GetDirectories(PathUtils.ForApi(root)).Select(Path.GetFileName).Single()).IsEqualTo("files");
+        } finally {
+            System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+            DirectoryUtils.Delete(root);
+        }
+    }
+
+
     #region 剪切、复制
 
     [Test]
