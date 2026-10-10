@@ -265,7 +265,7 @@ public static class PathUtils {
     public static bool IsParentOf(string parentPath, string childPath) {
         parentPath = PathUtils.ForCompare(parentPath);
         childPath = PathUtils.ForCompare(childPath);
-        return childPath.StartsWith(parentPath + @"\", StringComparison.OrdinalIgnoreCase) || PathUtils.IsSame(childPath, parentPath);
+        return childPath.StartsWithF(parentPath + @"\", true) || PathUtils.IsSame(childPath, parentPath);
     }
 
 }
