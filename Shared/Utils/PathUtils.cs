@@ -232,7 +232,7 @@ public static class PathUtils {
         return PathUtils.Compare(path1, path2) == 0;
     }
     /// <summary>
-    /// 比较两个路径，忽略大小写，且不受当前语言设置影响。
+    /// 比较两个路径，忽略大小写。
     /// <para/><c>null</c> 与空字符串视为相同的空路径，空路径排在非空路径之前。
     /// </summary>
     /// <returns>
