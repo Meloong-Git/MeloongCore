@@ -243,7 +243,7 @@ public static class PathUtils {
     public static int Compare(string? path1, string? path2) {
         if (string.IsNullOrEmpty(path1)) return string.IsNullOrEmpty(path2) ? 0 : -1;
         if (string.IsNullOrEmpty(path2)) return 1;
-        return string.Compare(PathUtils.ForCompare(path1!), PathUtils.ForCompare(path2!), true);
+        return string.Compare(PathUtils.ForCompare(path1!), PathUtils.ForCompare(path2!), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
