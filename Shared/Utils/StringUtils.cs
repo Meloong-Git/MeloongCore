@@ -139,7 +139,7 @@ public static class StringUtils {
                 return $"{span.Days} 天{suffix}";
             } else if (span.TotalHours >= 1) {
                 // 1 小时 ~ 2 天，“15 小时”
-                return $"{span.Hours} 小时{suffix}";
+                return $"{(int) span.TotalHours} 小时{suffix}";
             } else if (span.TotalMinutes >= 1) {
                 // 1 分钟 ~ 1 小时，“49 分钟”
                 return $"{span.Minutes} 分钟{suffix}";
