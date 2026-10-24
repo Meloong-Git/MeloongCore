@@ -141,7 +141,7 @@ public class WindowsProxy : IWebProxy, IDisposable {
         // http=www.exmaple.com;socks=www.example.org
         // 127.0.0.1:7890
         // 过滤不使用 http 协议的代理地址（因为 ServicePointManager 只支持这个）
-        var proxy = proxyServer.Split(";").Where(w => w.Contains("http=") || !w.Contains("=")).Select(w => "http://" + w.Split("=").Last())
+        var proxy = proxyServer.Split(";").Where(w => w.Contains("http=") || !w.Contains("=")).Select(w => w.Contains("http://") ? "http://":"" + w.Split("=").Last())
             .FirstOrDefault();
         ProxyChanged?.Invoke(proxy, bypassList);
         Disable = false;
