@@ -138,20 +138,22 @@ public static class CryptographyUtils {
 
     /// <summary>
     /// 使用 ECDSA 算法，验证一个字符串的签名是否使用私钥生成。
-    /// 如果验证失败则抛出 <see cref="CryptographicException"/>。
+    /// 如果验证失败则抛出 <see cref="SecurityException"/>。
     /// </summary>
     public static void EcdsaVerify(string sourceString, string sign, string publicKey) {
         using var sha256 = GetHashAlgorithm(HashMethod.Sha256);
         byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(sourceString));
+        byte[] publicKeyBytes = Convert.FromBase64String(publicKey);
+        byte[] signature = Convert.FromBase64String(sign);
         IntPtr algorithmHandle = IntPtr.Zero;
         IntPtr keyHandle = IntPtr.Zero;
         // 直接调用 DLL，以避免 .NET API 依赖的系统服务存在问题
         try {
             int status = BCryptOpenAlgorithmProvider(out algorithmHandle, "ECDSA_P256", null, 0);
             if (status < 0) throw new CryptographicException($"{nameof(BCryptOpenAlgorithmProvider)} 失败，错误码 {status}");
-            status = BCryptImportKeyPair(algorithmHandle, IntPtr.Zero, "ECCPUBLICBLOB", out keyHandle, Convert.FromBase64String(publicKey), 72, 0);
+            status = BCryptImportKeyPair(algorithmHandle, IntPtr.Zero, "ECCPUBLICBLOB", out keyHandle, publicKeyBytes, publicKeyBytes.Length, 0);
             if (status < 0) throw new CryptographicException($"{nameof(BCryptImportKeyPair)} 失败，错误码 {status}");
-            status = BCryptVerifySignature(keyHandle, IntPtr.Zero, hash, hash.Length, Convert.FromBase64String(sign), 64, 0);
+            status = BCryptVerifySignature(keyHandle, IntPtr.Zero, hash, hash.Length, signature, signature.Length, 0);
             if (status == unchecked((int) 0xC000A000)) throw new SecurityException("签名验证失败");
             if (status < 0) throw new CryptographicException($"{nameof(BCryptVerifySignature)} 失败，错误码 {status}");
         } finally {
